@@ -410,6 +410,9 @@ function getStore(config, router) {
         }
       },
       force(state, data) {
+        if (!data) {
+          return;
+        }
         state.data = new STAC(data);
         state.title = data.title;
       },
