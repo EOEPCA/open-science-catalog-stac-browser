@@ -44,14 +44,6 @@ module.exports = {
     crossOriginMedia: null,
     requestHeaders: {},
     requestQueryParameters: {},
-    preprocessSTAC: (stacItem => {
-      const blackList= ["theme:", "variable:", "project:", "eo-mission:", "region:"];
-      const keywords = stacItem.keywords;
-      let returnItem = stacItem;
-      if (keywords) {
-        returnItem.keywords = keywords.filter(k => !blackList.find(b => k.startsWith(b)));
-      }
-      return returnItem;
-    }),
+    preprocessSTAC: null,
     authConfig: null
 };
