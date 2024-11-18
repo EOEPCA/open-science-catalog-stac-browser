@@ -24,7 +24,7 @@ Registry.addMetadataField('contacts', {
 
 const formatLink = (type, value, links, jsonName) => {
   const link = links.find(link => link.rel === 'related' && link.href.includes(value));
-  return Helper.toLink(`/#/${type}/${value}/${jsonName}.json`, link.title.split(":")[1], "", "_self");
+  return Helper.toLink(`/stac-browser/#/${type}/${value}/${jsonName}.json`, link.title.split(":")[1], "", "_self");
 }
 
 Registry.addMetadataField('osc:project', {
