@@ -22,29 +22,36 @@ Registry.addMetadataField('contacts', {
     ext: "osc",
 });
 
+const formatLink = (type, value, links, jsonName) => {
+  const link = links.find(link => link.rel === 'related' && link.href.includes(value));
+  return Helper.toLink(`/#/${type}/${value}/${jsonName}.json`, link.title.split(":")[1], "", "_self");
+}
+
 Registry.addMetadataField('osc:project', {
   label: "Project",
   ext: "osc",
-  formatter: value => Helper.toLink(`/stac-browser/#/projects/${value}/collection.json`, value, "", "_self")
+  formatter: (value, field, spec, { links }) => {
+    return formatLink("projects", value, links, "collection")
+  }
 });
 
 Registry.addMetadataField('osc:themes', {
   label: "Themes",
   ext: "osc",
-  formatter: value =>
-    value.map(theme => Helper.toLink(`/stac-browser/#/themes/${theme}/catalog.json`, theme, "", "_self")).join(", ")
+  formatter: (value, field, spec, { links }) =>
+    value.map(theme => formatLink("themes", theme, links, "catalog")).join(", ")
 });
 
 Registry.addMetadataField('osc:variables', {
   label: "Variables",
   ext: "osc",
-  formatter: value =>
-    value.map(variable => Helper.toLink(`/stac-browser/#/variables/${variable}/catalog.json`, variable, "", "_self")).join(", ")
+  formatter: (value, field, spec, { links }) =>
+    value.map(variable => formatLink("variables", variable, links, "catalog")).join(", ")
 });
 
 Registry.addMetadataField('osc:missions', {
   label: "Missions",
   ext: "osc",
-  formatter: value =>
-    value.map(mission => Helper.toLink(`/stac-browser/#/eo-missions/${mission}/catalog.json`, mission, "", "_self")).join(", ")
+  formatter: (value, field, spec, { links }) =>
+    value.map(mission => formatLink("eo-missions", mission, links, "catalog")).join(", ")
 });
