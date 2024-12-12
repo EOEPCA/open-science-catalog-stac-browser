@@ -34,6 +34,14 @@
             </b-tabs>
           </b-card>
         </section>
+        <section v-if="isCollection" class="mb-4">
+          <h2>{{ $t('topics') }}</h2>
+          <ForumTopics
+            v-if="forumTopicData"
+            :stacData="data"
+            :topicData="forumTopicData"
+          />
+        </section>
         <Assets v-if="hasAssets" :assets="assets" :context="data" :shown="shownAssets" @showAsset="showAsset" />
         <Assets v-if="hasItemAssets && !hasItems" :assets="data.item_assets" :context="data" :definition="true" />
         <Providers v-if="providers" :providers="providers" />
@@ -62,6 +70,7 @@
 import { mapState, mapGetters } from 'vuex';
 import Catalogs from '../components/Catalogs.vue';
 import Description from '../components/Description.vue';
+import ForumTopics from "../components/ForumTopics";
 import Items from '../components/Items.vue';
 import ReadMore from "vue-read-more-smooth";
 import ShowAssetMixin from '../components/ShowAssetMixin';
@@ -82,6 +91,7 @@ export default {
     CollectionLink: () => import('../components/CollectionLink.vue'),
     DeprecationNotice: () => import('../components/DeprecationNotice.vue'),
     Description,
+    ForumTopics,
     Items,
     Keywords: () => import('../components/Keywords.vue'),
     Links: () => import('../components/Links.vue'),
@@ -131,7 +141,8 @@ export default {
         'auth:schemes',
         // Special handling for the STAC Browser config
         'stac_browser'
-      ]
+      ],
+      forumTopicData: null,
     };
   },
   computed: {
@@ -234,6 +245,15 @@ export default {
         }
       }
     }
+  },
+  async mounted() {
+    const response = await fetch(`https://discourse-earthcode.eox.at/search.json?q=${this.data.title}`);
+    if (!response.ok) {
+      // TODO handle error
+      return;
+    }
+
+    this.forumTopicData = await response.json();
   },
   methods: {
     filtersShown(show) {
