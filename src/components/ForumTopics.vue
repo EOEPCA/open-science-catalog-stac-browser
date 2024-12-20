@@ -46,7 +46,7 @@
       <a
         :href="`https://discourse-earthcode.eox.at/new-topic?title=${
           stacData.title
-        }&category=Data & Workflows&tags=${capitalize(
+        }&category=data-workflows&tags=${capitalize(
           stacData['osc:type']
         )},${stacData.keywords?.join(',')},STAC`"
         target="_blank"
