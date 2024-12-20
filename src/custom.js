@@ -1,0 +1,1 @@
+export const discourseRoot = "https://discourse-earthcode.eox.at"

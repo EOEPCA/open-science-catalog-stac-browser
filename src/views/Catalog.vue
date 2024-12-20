@@ -79,6 +79,7 @@ import { formatLicense, formatTemporalExtents } from '@radiantearth/stac-fields/
 import { BTabs, BTab } from 'bootstrap-vue';
 import Utils from '../utils';
 import { addSchemaToDocument, createCatalogSchema } from '../schema-org';
+import { discourseRoot } from "../custom";
 
 export default {
   name: "Catalog",
@@ -247,7 +248,7 @@ export default {
     }
   },
   async mounted() {
-    const response = await fetch(`https://discourse-earthcode.eox.at/search.json?q=${this.data.title}`);
+    const response = await fetch(`${discourseRoot}/search.json?q=${this.data.title}`);
     if (!response.ok) {
       // TODO handle error
       return;

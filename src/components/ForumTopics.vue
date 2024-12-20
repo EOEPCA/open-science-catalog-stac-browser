@@ -3,7 +3,7 @@
     <ul>
       <li v-for="topic in topicData.topics">
         <a
-          :href="`https://discourse-earthcode.eox.at/t/${topic.slug}`"
+          :href="`${discourseRoot}/t/${topic.slug}`"
           target="_blank"
         >
           <span class="title">{{ topic.unicode_title || topic.title }}</span>
@@ -20,7 +20,7 @@
                   .filter((p) => p.topic_id === topic.id)
                   .map((p) => p.avatar_template),
               ])"
-              :src="`https://discourse-earthcode.eox.at${avatar.replace(
+              :src="`${discourseRoot}${avatar.replace(
                 '{size}',
                 '28'
               )}`"
@@ -44,7 +44,7 @@
       </span>
       <span v-else> Didn't find what you were looking for? </span>
       <a
-        :href="`https://discourse-earthcode.eox.at/new-topic?title=${
+        :href="`${discourseRoot}/new-topic?title=${
           stacData.title
         }&category=data-workflows&tags=${capitalize(
           stacData['osc:type']
@@ -57,7 +57,12 @@
 </template>
 
 <script>
+import { discourseRoot } from "../custom";
+
 export default {
+  data: () => ({
+    discourseRoot,
+  }),
   props: {
     stacData: {
       type: Object,
