@@ -90,6 +90,12 @@ export default {
         this.formattedData = this.formatData();
       },
     },
+    data: {
+      immediate: true,
+      handler() {
+        this.formattedData = this.formatData();
+      }
+    }
   },
   methods: {
     formatData() {
