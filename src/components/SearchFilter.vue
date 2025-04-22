@@ -21,8 +21,8 @@
 
         <b-form-group v-if="canFilterExtents" class="filter-datetime" :label="$t('search.temporalExtent')" :label-for="ids.datetime" :description="$t('search.dateDescription')">
           <date-picker
-            range :id="ids.datetime" :lang="datepickerLang" :format="datepickerFormat"
-            v-model="datetime" input-class="form-control mx-input"
+            range type="datetime" v-model="datetime" input-class="form-control mx-input"
+            :id="ids.datetime" :lang="datepickerLang" :format="dateTimeFormat"
           />
         </b-form-group>
 
@@ -133,7 +133,6 @@ import Cql from '../models/cql2/cql';
 import Queryable from '../models/cql2/queryable';
 import CqlValue from '../models/cql2/value';
 import CqlLogicalOperator from '../models/cql2/operators/logical';
-import { CqlEqual } from '../models/cql2/operators/comparison';
 import { stacRequest } from '../store/utils';
 
 function getQueryDefaults() {
@@ -205,7 +204,6 @@ export default {
   data() {
     return Object.assign({
       results: null,
-      maxItems: 10000,
       loaded: false,
       queryables: null,
       hasAllCollections: false,
@@ -215,7 +213,7 @@ export default {
     }, getDefaults());
   },
   computed: {
-    ...mapState(['itemsPerPage', 'uiLanguage']),
+    ...mapState(['itemsPerPage', 'maxItemsPerPage', 'uiLanguage']),
     ...mapGetters(['canSearchCollections', 'supportsConformance']),
     collectionSelectOptions() {
       let taggable = !this.hasAllCollections;
@@ -281,6 +279,9 @@ export default {
       const collator = new Intl.Collator(this.uiLanguage);
       return this.queryables.slice(0).sort((a, b) => collator.compare(a.title, b.title));
     },
+    maxItems() {
+      return this.maxItemsPerPage || 1000;
+    },
     datetime: {
       get() {
         return Array.isArray(this.query.datetime) ? this.query.datetime.map(d => Utils.dateFromUTC(d)) : null;
@@ -325,7 +326,7 @@ export default {
   },
   created() {
     let promises = [];
-    if (this.cql && this.stac) {
+    if (this.cql && this.stac && this.type !== 'Collections') {
       let queryableLink = this.findQueryableLink(this.stac.links);
       promises.push(
         this.loadQueryables(queryableLink)
@@ -488,9 +489,10 @@ export default {
       this.filters.splice(queryableIndex, 1);
     },
     additionalFieldSelected(queryable) {
+      const operators = queryable.getOperators(this.cql);
       this.filters.push({
         value: CqlValue.create(queryable.defaultValue),
-        operator: CqlEqual,
+        operator: operators[0],
         queryable
       });
     },
@@ -601,25 +603,12 @@ $primary-color: map-get($theme-colors, "primary");
   }
 
   .form-group {
-    // Shows multi-select and datepicker components over map
-    position: relative;
-    z-index: 0;
-
     > div {
       margin-left: 1em;
     }
 
     > label {
       font-weight: 600;
-    }
-
-    &.filter-collection,
-    &.filter-item-id,
-    &.filter-datetime,
-    &.additional-filters,
-    &.sort {
-      position: relative;
-      z-index: 1;
     }
   }
 }

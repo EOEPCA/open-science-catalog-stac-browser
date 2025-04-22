@@ -195,7 +195,7 @@ function getStore(config, router) {
         return getters.canSearchCollections || getters.canSearchItems;
       },
       canSearchItems: (state, getters) => {
-        return getters.supportsConformance(TYPES.Items.BasicFilters);
+        return getters.supportsConformance(TYPES.Global.BasicFilters);
       },
       canSearchCollections: (state, getters) => {
         return getters.supportsConformance(TYPES.Collections.BasicFilters);
@@ -628,10 +628,14 @@ function getStore(config, router) {
     },
     actions: {
       async config(cx, config) {
+        const oldConfig = Object.assign({}, cx.state);
         cx.commit('config', config);
         // React on config changes
         for (let key in config) {
           let value = cx.state[key];
+          if (value !== oldConfig[key]) {
+            continue;
+          }
           switch (key) {
             case 'authConfig':
               await cx.dispatch('auth/updateMethod', value);
@@ -672,7 +676,7 @@ function getStore(config, router) {
         if (urls.length > 0) {
           let promises = [];
           for (let url of urls) {
-            promises.push(cx.dispatch('load', { url }));
+            promises.push(cx.dispatch('load', { url, omitApi: true }));
           }
           cx.commit('removeFromQueue', count);
           return await Promise.all(promises);
@@ -692,7 +696,7 @@ function getStore(config, router) {
             break;
           }
           let url = Utils.toAbsolute(parentLink.href, stac.getAbsoluteUrl());
-          await cx.dispatch('load', { url });
+          await cx.dispatch('load', { url, omitApi: true });
           let parentStac = cx.getters.getStac(url, true);
           if (parentStac instanceof Error) {
             cx.commit('parents', parentStac);
@@ -715,7 +719,14 @@ function getStore(config, router) {
         await cx.dispatch('auth/requestLogin');
       },
       async load(cx, args) {
-        let { url, show, force, noRetry } = args;
+        let {
+          url, // URL to load
+          show, // Show the page when loading is finished, otherwise it's likely loaded in the background for completing specific parts of the page
+          force, // Force reloading the data, omit the cache
+          noRetry, // Don't retry on authentication errors
+          omitApi, // Don't load API collections or API items yet
+          isRoot // Is a request for the root catalog initiated by this function, avoiding endless loops in some mis-configured instances (see https://github.com/radiantearth/stac-browser/issues/580)
+        } = args;
 
         const path = cx.getters.toBrowserPath(url);
         url = Utils.toAbsolute(url, cx.state.url);
@@ -733,53 +744,53 @@ function getStore(config, router) {
           cx.commit('updateLoading', { url, show });
           return;
         }
-        else if (data instanceof STAC && !data.isPotentiallyIncomplete()) {
-          if (show) {
-            cx.commit('showPage', { url });
-          }
-          return;
-        }
 
-        cx.commit('loading', { url, loading });
-        try {
-          const response = await stacRequest(cx, url);
-          if (!Utils.isObject(response.data)) {
-            throw new BrowserError(i18n.t('errors.invalidJsonObject'));
-          }
-          data = new STAC(response.data, url, path);
-          cx.commit('loaded', { url, data });
+        const hasData = data instanceof STAC && !data.isPotentiallyIncomplete();
+        if (!hasData) {
+          cx.commit('loading', { url, loading });
+          try {
+            const response = await stacRequest(cx, url);
+            if (!Utils.isObject(response.data)) {
+              throw new BrowserError(i18n.t('errors.invalidJsonObject'));
+            }
+            data = new STAC(response.data, url, path);
+            cx.commit('loaded', { url, data });
 
-          if (show) {
-            // If we prefer another language abort redirect to the new language
-            let localeLink = data.getLocaleLink(cx.state.dataLanguage);
-            if (localeLink) {
-              router.replace(cx.getters.toBrowserPath(localeLink.href));
+            if (show) {
+              // If we prefer another language abort redirect to the new language
+              let localeLink = data.getLocaleLink(cx.state.dataLanguage);
+              if (localeLink) {
+                router.replace(cx.getters.toBrowserPath(localeLink.href));
+                return;
+              }
+            }
+
+            // Handle conformance classes
+            let conformanceLink = data.getStacLinkWithRel('conformance');
+            if (Array.isArray(data.conformsTo) && data.conformsTo.length > 0) {
+              cx.commit('setConformanceClasses', data.conformsTo);
+            }
+            else if (conformanceLink) {
+              await cx.dispatch('loadOgcApiConformance', conformanceLink);
+            }
+          } catch (error) {
+            if (!noRetry && cx.state.authConfig && isAuthenticationError(error)) {
+              await cx.dispatch('tryLogin', {
+                url,
+                action: () => cx.dispatch('load', Object.assign({noRetry: true, force: true, show: true}, args))
+              });
               return;
             }
-          }
-
-          // Handle conformance classes
-          let conformanceLink = data.getStacLinkWithRel('conformance');
-          if (Array.isArray(data.conformsTo) && data.conformsTo.length > 0) {
-            cx.commit('setConformanceClasses', data.conformsTo);
-          }
-          else if (conformanceLink) {
-            await cx.dispatch('loadOgcApiConformance', conformanceLink);
-          }
-        } catch (error) {
-          if (!noRetry && cx.state.authConfig && isAuthenticationError(error)) {
-            await cx.dispatch('tryLogin', {
-              url,
-              action: () => cx.dispatch('load', Object.assign({noRetry: true, force: true, show: true}, args))
-            });
+            console.error(error);
+            cx.commit('errored', { url, error });
             return;
           }
-          console.error(error);
-          cx.commit('errored', { url, error });
         }
 
         // Load API Collections
-        if (data.getApiCollectionsLink()) {
+        const apiCollectionLink = data.getApiCollectionsLink();
+        const apiItemLink = data.getApiItemsLink();
+        if (!omitApi && apiCollectionLink) {
           let args = { stac: data, show: loading.show };
           try {
             await cx.dispatch('loadNextApiCollections', args);
@@ -791,7 +802,7 @@ function getStore(config, router) {
           }
         }
         // Load API Items
-        if (data.getApiItemsLink()) {
+        else if (!omitApi && apiItemLink) {
           let args = { stac: data, show: loading.show };
           try {
             await cx.dispatch('loadApiItems', args);
@@ -804,7 +815,7 @@ function getStore(config, router) {
         }
 
         // Load the root catalog data if not available (e.g. after page refresh or external access)
-        if (!cx.getters.root) {
+        if (!cx.getters.root && !isRoot) {
           let catalogUrl = cx.state.catalogUrl;
           if (!catalogUrl) {
             const root = data.getLinkWithRel('root');
@@ -814,7 +825,7 @@ function getStore(config, router) {
             }
           }
           if (catalogUrl) {
-            await cx.dispatch("load", { url: catalogUrl });
+            await cx.dispatch("load", { url: catalogUrl, omitApi: true, isRoot: true });
           }
         }
 

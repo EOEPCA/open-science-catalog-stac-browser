@@ -9,6 +9,7 @@ module.exports = {
     fallbackLocale: "en",
     supportedLocales: [
         "de",
+        "ar",
 //      "de-CH",
         "es",
         "en",
@@ -27,7 +28,7 @@ module.exports = {
     apiCatalogPriority: null,
     useTileLayerAsFallback: true,
     displayGeoTiffByDefault: false,
-    buildTileUrlTemplate: ({href, asset}) => "https://tiles.rdnt.io/tiles/{z}/{x}/{y}@2x?url=" + encodeURIComponent(asset.href.startsWith("/vsi") ? asset.href : href),
+    buildTileUrlTemplate: ({href, asset}) => "https://tiles.rdnt.io/tiles/{z}/{x}/{y}@2x?url=" + encodeURIComponent(href),
     stacProxyUrl: null,
     pathPrefix: "/stac-browser/",
     historyMode: "hash",
@@ -39,11 +40,13 @@ module.exports = {
     geoTiffResolution: 128,
     redirectLegacyUrls: false,
     itemsPerPage: 12,
+    maxItemsPerPage: 1000,
     defaultThumbnailSize: null,
     maxPreviewsOnMap: 50,
     crossOriginMedia: null,
     requestHeaders: {},
     requestQueryParameters: {},
+    socialSharing: ['email', 'bsky', 'mastodon', 'x'],
     preprocessSTAC: null,
     authConfig: null
 };
