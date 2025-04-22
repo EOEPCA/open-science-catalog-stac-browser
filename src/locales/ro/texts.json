@@ -11,10 +11,6 @@
     "alternate": {
       "main": "Preferat"
     },
-    "copyGdalVfsUrl": {
-      "generic": "Copiați link-ul GDAL VFS",
-      "withSource": "Copiați link-ul GDAL VFS al {source}"
-    },
     "copyUrl": {
       "generic": "Copiați link-ul",
       "withSource": "Copiați link-ul al {source}"
@@ -302,12 +298,14 @@
     },
     "locatedAt": "Fișierul de metadate STAC poate fi găsit la următoarea adresă:",
     "share": {
+      "bsky": "Bluesky",
       "email": "E-Mail",
       "label": "Partajare",
+      "mastodon": "Mastodon.social",
       "message": "{title} este disponibil la adresa {url}",
       "sharePageWithOthers": "Partajați URL-ul acestei pagini cu alții:",
       "title": "Partajare",
-      "twitter": "Twitter",
+      "x": "X (Twitter)",
       "withOthers": "Partajați această pagină"
     },
     "stacExtension": "Extensie STAC",

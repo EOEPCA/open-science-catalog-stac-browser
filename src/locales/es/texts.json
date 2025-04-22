@@ -11,10 +11,6 @@
     "alternate": {
       "main": "Preferido"
     },
-    "copyGdalVfsUrl": {
-      "generic": "Copiar la URL del VFS de GDAL",
-      "withSource": "Copiar la URL del VFS de GDAL para {source}"
-    },
     "copyUrl": {
       "generic": "Copiar la URL",
       "withSource": "Copiar la URL para {source}"
@@ -302,12 +298,14 @@
     },
     "locatedAt": "El archivo de metadatos STAC se encuentra en:",
     "share": {
+      "bsky": "Bluesky",
       "email": "E-mail",
       "label": "Compartir",
+      "mastodon": "Mastodon.social",
       "message": "{title} está disponible en {url}",
       "sharePageWithOthers": "Comparta la URL de está página donde guste:",
       "title": "Compartir",
-      "twitter": "Twitter",
+      "x": "X (Twitter)",
       "withOthers": "Comparta esta página con otros"
     },
     "stacExtension": "Extensión STAC",
