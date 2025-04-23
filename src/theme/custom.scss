@@ -1,6 +1,6 @@
-.share>.btn-group>:not(:first-child) {
+.share>.btn-group>:not(button#popover-link-btn) {
   display: none;
 }
-.share>.btn-group>:first-child {
+.share>.btn-group>button#popover-link-btn {
   border-radius: .25rem !important;
 }
