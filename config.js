@@ -47,6 +47,22 @@ module.exports = {
     requestHeaders: {},
     requestQueryParameters: {},
     socialSharing: ['email', 'bsky', 'mastodon', 'x'],
-    preprocessSTAC: null,
+    preprocessSTAC: (stac) => {
+        if(stac.type === "Feature") {
+            stac.links = stac.links.map(link => {
+                if (link.rel === "child") {
+                    link.rel = "related";
+                    if (link.href.includes("/experiments/")) {
+                      link.title = `Experiment: ${link.title}`;
+                    }
+                    if (link.href.includes("/workflows/")) {
+                      link.title = `Workflow: ${link.title}`;
+                    }
+                }
+                return link;
+            })
+        }
+        return stac;
+    },
     authConfig: null
 };
