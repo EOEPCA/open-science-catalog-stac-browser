@@ -58,6 +58,9 @@ module.exports = {
                     if (link.href.includes("/workflows/")) {
                       link.title = `Workflow: ${link.title}`;
                     }
+                    if (link.href.includes("/products/")) {
+                      link.title = `Product: ${link.title}`;
+                    }
                 }
                 return link;
             })
