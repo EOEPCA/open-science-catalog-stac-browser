@@ -55,3 +55,5 @@ Registry.addMetadataField('osc:missions', {
   formatter: (value, field, spec, { links }) =>
     value.map(mission => formatLink("eo-missions", mission, links, "catalog")).join(", ")
 });
+
+Registry.fields.links.rel.mapping.vcs = "Version Control System";
