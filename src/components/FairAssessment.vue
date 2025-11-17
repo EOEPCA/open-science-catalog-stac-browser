@@ -2,7 +2,7 @@
   <eox-chart
     :spec.prop="chartSpec"
     :dataValues.prop="chartData"
-  >Hi there!</eox-chart>
+  ></eox-chart>
 </template>
 
 <script>
