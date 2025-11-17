@@ -34,6 +34,10 @@
             </b-tabs>
           </b-card>
         </section>
+        <section v-if="isCollection && data.access" class="mb-4">
+          <h2>{{ $t('fairAssessment') }}</h2>
+          <FairAssessment :collection="data" />
+        </section>
         <section v-if="isCollection" class="mb-4">
           <h2>{{ $t('topics') }}</h2>
           <ForumTopics
@@ -70,6 +74,7 @@
 import { mapState, mapGetters } from 'vuex';
 import Catalogs from '../components/Catalogs.vue';
 import Description from '../components/Description.vue';
+import FairAssessment from "../components/FairAssessment";
 import ForumTopics from "../components/ForumTopics";
 import Items from '../components/Items.vue';
 import ReadMore from "vue-read-more-smooth";
@@ -92,6 +97,7 @@ export default {
     CollectionLink: () => import('../components/CollectionLink.vue'),
     DeprecationNotice: () => import('../components/DeprecationNotice.vue'),
     Description,
+    FairAssessment,
     ForumTopics,
     Items,
     Keywords: () => import('../components/Keywords.vue'),
