@@ -18,58 +18,97 @@ export default {
     },
   },
   mounted() {
-    // --- Data Processing ---
+    const fair_descriptions = {
+      "fair:product_url_resolves": "Test whether the dataset URL resolves successfully.",
+      "fair:product_has_doi": "Test whether the dataset has an associated DOI.",
+      "fair:product_has_documentation": "Test whether the dataset has documentation.",
+      "fair:product_approved_metadata_domain": "Test whether the metadata is hosted on an approved domain.",
+      "fair:product_approved_data_domain": "Test whether the data is hosted on an approved domain.",
+      "fair:file_access": "Test whether the metadata has per-file metadata, or if the data is a raw dump.",
+      "fair:file_acessible_files_rate": "Percent of assets that could be opened in tests.",
+      "fair:file_cloud_assets_rate": "Percent of assets that are in cloud-optimised format.",
+      "fair:workflow_exists": "Dataset has associated workflow."
+    };
 
     /**
      * Helper function to convert keys like "acessible_files_rate" or "product"
      * into "Acessible files rate" or "Product"
      */
-      function prettify(str) {
+    function prettify(str) {
       if (!str) return "";
       return str
         .replace(/[_-]/g, " ") // Replace underscores/hyphens with spaces
         .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize first letter of each word
     }
 
-    // Transform the nested JSON into a flat array for Vega-Lite
-    const accessData = this.collection.access;
-    if (!accessData) {
-      // No access data available
-      return;
-    }
     const chartData = [];
     let totalMetrics = 0;
     let trueMetrics = 0;
 
-    for (const groupName in accessData) {
-      const groupData = accessData[groupName];
-      
-      // Create the clean, capitalized label for the group, e.g., "Product"
-      const groupLabel = prettify(groupName.split(":").pop());
+    if (this.collection.access && typeof this.collection.access === 'object' && !Array.isArray(this.collection.access)) {
+      // Old structure
+      for (const groupName in this.collection.access) {
+        const groupData = this.collection.access[groupName];
+        const groupLabel = prettify(groupName.split(":").pop());
 
-      for (const metricName in groupData) {
-        const metricData = groupData[metricName];
-        const value = metricData.value;
-        const score = value ? 1 : 0; // 1 for true (pass), 0 for false (fail)
-        
-        // Create the clean label for the metric
-        const metricLabel = prettify(metricName);
+        for (const metricName in groupData) {
+          const metricData = groupData[metricName];
+          const value = metricData.value;
+          const score = value ? 1 : 0;
+          const metricLabel = prettify(metricName);
+
+          chartData.push({
+            group: groupName,
+            groupLabel: groupLabel,
+            metric: metricName,
+            metricLabel: metricLabel,
+            value: value,
+            score: score,
+            description: metricData.description,
+          });
+
+          totalMetrics++;
+          trueMetrics += score;
+        }
+      }
+    } else {
+      // New structure
+      for (const key in fair_descriptions) {
+        if (typeof this.collection[key] === "undefined") {
+          continue;
+        }
+
+        const value = this.collection[key];
+        const metricName = key.replace("fair:", "");
+        const groupName = metricName.split("_")[0];
+
+        const groupLabel = prettify(groupName);
+        const metricLabel = prettify(metricName.replace(groupName + "_", ""));
+
+        let score = 0;
+        if (typeof value === "boolean") {
+          score = value ? 1 : 0;
+        } else if (typeof value === "number") {
+          score = value;
+        }
 
         chartData.push({
           group: groupName,
           groupLabel: groupLabel,
-          metric: metricName,
+          metric: key,
           metricLabel: metricLabel,
           value: value,
           score: score,
-          description: metricData.description,
+          description: fair_descriptions[key],
         });
 
         totalMetrics++;
-        if (value) {
-          trueMetrics++;
-        }
+        trueMetrics += score;
       }
+    }
+
+    if (chartData.length === 0) {
+      return;
     }
 
     // Calculate overall percentage for the center label
@@ -153,7 +192,6 @@ export default {
               title: "Access Category",
             },
             
-            // *** THIS IS THE NEWLY ADDED SECTION ***
             // Opacity is the average score of the group (0.0 to 1.0)
             opacity: {
               "field": "score",
@@ -163,7 +201,6 @@ export default {
               "scale": {"range": [0.3, 1.0]}, 
               "legend": null
             },
-            // *** END OF NEW SECTION ***
 
             // Order segments by group
             order: { field: "group" },

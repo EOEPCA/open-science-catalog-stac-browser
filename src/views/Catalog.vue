@@ -34,7 +34,7 @@
             </b-tabs>
           </b-card>
         </section>
-        <section v-if="isCollection && data.access" class="mb-4">
+        <section v-if="isCollection && hasFairAssessment" class="mb-4">
           <h2>{{ $t('fairAssessment') }}</h2>
           <FairAssessment :collection="data" />
         </section>
@@ -115,40 +115,6 @@ export default {
   data() {
     return {
       filters: {},
-      ignoredMetadataFields: [
-        // Catalog and Collection fields that are handled directly
-        'stac_version',
-        'stac_extensions',
-        'id',
-        'type',
-        'title',
-        'description',
-        'keywords',
-        'providers',
-        'license',
-        'extent',
-        'summaries',
-        'links',
-        'assets',
-        'item_assets',
-        // Don't show these complex lists of coordinates: https://github.com/radiantearth/stac-browser/issues/141
-        'proj:bbox',
-        'proj:geometry',
-        // API landing page, not very useful to display, but https://github.com/radiantearth/stac-browser/issues/136
-        'conformsTo',
-        // Will be rendered with a custom rendered
-        'deprecated',
-        // Special handling for the warning of the anonymized-location extension
-        'anon:warning',
-        // Special handling for the stats extension
-        'stats:catalogs',
-        'stats:collections',
-        'stats:items',
-        // Special handling for auth
-        'auth:schemes',
-        // Special handling for the STAC Browser config
-        'stac_browser'
-      ],
       forumTopicData: null,
     };
   },
@@ -227,6 +193,57 @@ export default {
     },
     hasCatalogs() {
       return this.catalogs.length > 0;
+    },
+    hasFairAssessment() {
+      return (
+        Utils.isObject(this.data.access) ||
+        Object.keys(this.data).some((key) => key.startsWith("fair:"))
+      );
+    },
+    ignoredMetadataFields() {
+      const fields = [
+        // Catalog and Collection fields that are handled directly
+        "stac_version",
+        "stac_extensions",
+        "id",
+        "type",
+        "title",
+        "description",
+        "keywords",
+        "providers",
+        "license",
+        "extent",
+        "summaries",
+        "links",
+        "assets",
+        "item_assets",
+        // Don't show these complex lists of coordinates: https://github.com/radiantearth/stac-browser/issues/141
+        "proj:bbox",
+        "proj:geometry",
+        // API landing page, not very useful to display, but https://github.com/radiantearth/stac-browser/issues/136
+        "conformsTo",
+        // Will be rendered with a custom rendered
+        "deprecated",
+        // Special handling for the warning of the anonymized-location extension
+        "anon:warning",
+        // Special handling for the stats extension
+        "stats:catalogs",
+        "stats:collections",
+        "stats:items",
+        // Special handling for auth
+        "auth:schemes",
+        // Special handling for the STAC Browser config
+        "stac_browser",
+        // Special handling for FAIR Assessment
+        "access",
+      ];
+      // Ignore all fair: fields
+      Object.keys(this.data).forEach((key) => {
+        if (key.startsWith("fair:")) {
+          fields.push(key);
+        }
+      });
+      return fields;
     },
     mapData() {
       if (this.selectedAsset) {
