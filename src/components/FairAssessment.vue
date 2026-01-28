@@ -54,7 +54,7 @@ export default {
         for (const metricName in groupData) {
           const metricData = groupData[metricName];
           const value = metricData.value;
-          const score = value ? 1 : 0;
+          const score = (typeof value === "number" ? value >= 0.5 : value) ? 1 : 0;
           const metricLabel = prettify(metricName);
 
           chartData.push({
@@ -89,7 +89,7 @@ export default {
         if (typeof value === "boolean") {
           score = value ? 1 : 0;
         } else if (typeof value === "number") {
-          score = value;
+          score = value >= 0.5 ? 1 : 0;
         }
 
         chartData.push({
