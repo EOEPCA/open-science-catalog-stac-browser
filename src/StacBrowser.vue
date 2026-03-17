@@ -132,14 +132,6 @@ for(let key in CONFIG) {
   };
 }
 
-// OSC: Notify parent portal of navigation changes
-router.beforeEach((to, _, next) => {
-  window.parent.postMessage({
-    navigate: to.path
-  }, '*');
-  next();
-});
-
 export default defineComponent({
   name: 'StacBrowser',
   components: {
@@ -417,6 +409,14 @@ export default defineComponent({
     }
   },
   async created() {
+    // OSC: Notify parent portal of navigation changes
+    this.$router.beforeEach((to, _, next) => {
+      window.parent.postMessage({
+        navigate: to.path
+      }, '*');
+      next();
+    });
+
     // OSC: Listen for data injection from parent portal
     window.addEventListener(
       "message",
