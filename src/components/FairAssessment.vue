@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue';
+import { defineComponent, markRaw } from 'vue';
 
 export default defineComponent({
   data() {
@@ -261,11 +261,11 @@ export default defineComponent({
     };
     // --- End Spec ---
 
-    this.chartSpec = chartSpec;
-    this.chartData = {
+    this.chartSpec = markRaw(chartSpec);
+    this.chartData = markRaw({
       myData: chartData,
       scoreData: scoreData,
-    };
+    });
   }
 });
 </script>
