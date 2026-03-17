@@ -132,6 +132,14 @@ for(let key in CONFIG) {
   };
 }
 
+// OSC: Notify parent portal of navigation changes
+router.beforeEach((to, _, next) => {
+  window.parent.postMessage({
+    navigate: to.path
+  }, '*');
+  next();
+});
+
 export default defineComponent({
   name: 'StacBrowser',
   components: {
@@ -356,11 +364,16 @@ export default defineComponent({
           }
         }
 
-        this.$router.replace({ query }).catch(error => {
-          if (!isNavigationFailure(error, NavigationFailureType.duplicated)) {
-            throw Error(error);
-          }
-        });
+        if (query.external) {
+          // OSC: Hack for accessing the external functionality in a hosted bundle
+          this.$router.replace(`/external/${query.external}`);
+        } else {
+          this.$router.replace({ query }).catch(error => {
+            if (!isNavigationFailure(error, NavigationFailureType.duplicated)) {
+              throw Error(error);
+            }
+          });
+        }
       }
     },
     root(root, oldRoot) {
@@ -404,6 +417,14 @@ export default defineComponent({
     }
   },
   async created() {
+    // OSC: Listen for data injection from parent portal
+    window.addEventListener(
+      "message",
+      (event) => {
+        this.$store.commit("force", event.data.data);
+      },
+      false,
+    );
     await this.$router.isReady();
     this.detectLocale();
     this.parseQuery(this.$route);

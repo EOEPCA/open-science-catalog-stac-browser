@@ -6,10 +6,10 @@ import { STAC } from 'stac-js';
 const BASEMAPS = {
   earth: [
     {
-      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      url: '//tiles.maps.eox.at/wmts/1.0.0/terrain-light_3857/default/g/{z}/{y}/{x}.jpg',
       is: 'XYZ',
-      title: 'OpenStreetMap',
-      attributions: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors.',
+      title: 'EOX Terrain Light',
+      attributions: 'Terrain light: Data &copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors and <a href="//maps.eox.at/#data" target="_blank">others</a>, Rendering &copy; <a href="http://eox.at" target="_blank">EOX</a>',
       projection: "EPSG:3857"
     }
   ],

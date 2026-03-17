@@ -1,11 +1,11 @@
 export default {
     catalogUrl: null,
-    catalogTitle: "STAC Browser",
+    catalogTitle: "Open Science Catalog",
     catalogImage: null,
     allowExternalAccess: true, // Must be true if catalogUrl is not given
     allowedDomains: [],
-    detectLocaleFromBrowser: true,
-    storeLocale: true,
+    detectLocaleFromBrowser: false,
+    storeLocale: false,
     locale: "en",
     fallbackLocale: "en",
     supportedLocales: [
@@ -35,9 +35,9 @@ export default {
     displayOverview: true,
     buildTileUrlTemplate: null,
     getMapSourceOptions: null,
-    pathPrefix: "/",
-    historyMode: "history",
-    cardViewMode: "cards",
+    pathPrefix: "/stac-browser/",
+    historyMode: "hash",
+    cardViewMode: "list",
     cardViewSort: "asc",
     showKeywordsInItemCards: false,
     showKeywordsInCatalogCards: false,
@@ -50,8 +50,27 @@ export default {
     crossOriginMedia: null,
     requestHeaders: {},
     requestQueryParameters: {},
-    socialSharing: ['email', 'bsky', 'mastodon', 'x'],
-    preprocessSTAC: null,
+    socialSharing: [],
+    preprocessSTAC: (stac) => {
+        if(stac.type === "Feature") {
+            stac.links = stac.links.map(link => {
+                if (link.rel === "child") {
+                    link.rel = "related";
+                    if (link.href.includes("/experiments/")) {
+                      link.title = `Experiment: ${link.title}`;
+                    }
+                    if (link.href.includes("/workflows/")) {
+                      link.title = `Workflow: ${link.title}`;
+                    }
+                    if (link.href.includes("/products/")) {
+                      link.title = `Product: ${link.title}`;
+                    }
+                }
+                return link;
+            })
+        }
+        return stac;
+    },
     authConfig: null,
     crs: {},
     footerLinks: null

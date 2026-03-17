@@ -10,7 +10,6 @@
             <Description :description="data.description" />
           </ReadMore>
           <Keywords v-if="Array.isArray(data.keywords) && data.keywords.length > 0" :keywords="data.keywords" class="mb-3" />
-          <CollectionLink v-if="collectionLink" :link="collectionLink" />
           <section v-if="isCollection" class="metadata mb-4">
             <b-row v-if="licenses">
               <b-col md="4" class="label">{{ $t('catalog.license') }}</b-col>
@@ -35,10 +34,18 @@
             </b-tabs>
           </b-card>
         </section>
+        <section v-if="isCollection && forumTopicData" class="mb-4">
+          <h2>{{ $t('topics') }}</h2>
+          <ForumTopics
+            :stacData="data"
+            :topicData="forumTopicData"
+          />
+        </section>
         <Assets v-if="hasAssets" :assets="assets" :context="data" :shown="selectedReferences" @show-asset="showAsset" />
         <Assets v-if="hasItemAssets && !hasItems" :assets="itemAssets" :context="data" :definition="true" />
         <Providers v-if="providers" :providers="providers" />
         <MetadataGroups class="mb-4" :type="data.type" :data="data" :ignoreFields="ignoredMetadataFields" />
+        <CollectionLink v-if="collectionLink" :link="collectionLink" />
         <LinkList v-if="linkPosition === 'right'" :title="$t('additionalResources')" :links="additionalLinks" :context="data" />
       </b-col>
       <b-col class="catalogs-container" v-if="hasCatalogs">
@@ -64,6 +71,7 @@ import { defineComponent, defineAsyncComponent } from 'vue';
 import { mapState, mapGetters } from 'vuex';
 import Catalogs from '../components/Catalogs.vue';
 import Description from '../components/Description.vue';
+import ForumTopics from '../components/ForumTopics.vue';
 import Items from '../components/Items.vue';
 import ReadMore from "../components/ReadMore.vue";
 import ShowAssetLinkMixin from '../components/ShowAssetLinkMixin';
@@ -75,6 +83,7 @@ import { addSchemaToDocument, createCatalogSchema } from '../schema-org';
 import { ItemCollection } from '../models/stac.js';
 import DeprecationMixin from '../components/DeprecationMixin.js';
 import { BTab, BTabs, BCard } from 'bootstrap-vue-next';
+import { discourseRoot } from "../custom";
 
 export default defineComponent({
   name: "Catalog",
@@ -88,6 +97,7 @@ export default defineComponent({
     CollectionLink: defineAsyncComponent(() => import('../components/CollectionLink.vue')),
     DeprecationNotice: defineAsyncComponent(() => import('../components/DeprecationNotice.vue')),
     Description,
+    ForumTopics,
     Items,
     Keywords: defineAsyncComponent(() => import('../components/Keywords.vue')),
     LinkList: defineAsyncComponent(() => import('../components/LinkList.vue')),
@@ -105,7 +115,14 @@ export default defineComponent({
   data() {
     return {
       filters: {},
-      ignoredMetadataFields: [
+      forumTopicData: null,
+    };
+  },
+  computed: {
+    ...mapState(['data', 'url', 'apiCatalogPriority',  'apiItems', 'apiItemsLink', 'apiItemsPagination', 'apiItemsNumberMatched', 'nextCollectionsLink', 'stateQueryParameters']),
+    ...mapGetters(['catalogs', 'collectionLink', 'isCollection', 'items', 'getApiItemsLoading', 'parentLink', 'rootLink']),
+    ignoredMetadataFields() {
+      return [
         // Catalog and Collection fields that are handled directly
         'stac_version',
         'stac_extensions',
@@ -137,13 +154,9 @@ export default defineComponent({
         // Special handling for auth
         'auth:schemes',
         // Special handling for the STAC Browser config
-        'stac_browser'
-      ]
-    };
-  },
-  computed: {
-    ...mapState(['data', 'url', 'apiCatalogPriority',  'apiItems', 'apiItemsLink', 'apiItemsPagination', 'apiItemsNumberMatched', 'nextCollectionsLink', 'stateQueryParameters']),
-    ...mapGetters(['catalogs', 'collectionLink', 'isCollection', 'items', 'getApiItemsLoading', 'parentLink', 'rootLink']),
+        'stac_browser',
+      ];
+    },
     cssStacType() {
       if (hasText(this.data?.type)) {
         return this.data?.type.toLowerCase();
@@ -171,7 +184,7 @@ export default defineComponent({
       return this.apiCatalogPriority !== 'childs' && Boolean(this.nextCollectionsLink);
     },
     licenses() {
-      if (this.data.license) {
+      if (this.isCollection && this.data.license) {
         return this.formatLicense(this.data.license, null, null, this.data);
       }
       return null;
@@ -251,6 +264,17 @@ export default defineComponent({
           console.error(error);
         }
       }
+    }
+  },
+  async mounted() {
+    // OSC: Fetch related forum topics from EarthCODE Discourse
+    try {
+      const response = await fetch(`${discourseRoot}/search.json?q=${this.data.title}`);
+      if (response.ok) {
+        this.forumTopicData = await response.json();
+      }
+    } catch (error) {
+      console.error('Failed to fetch forum topics:', error);
     }
   },
   methods: {

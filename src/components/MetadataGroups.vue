@@ -96,6 +96,12 @@ export default {
         this.formattedData = this.formatData();
       },
     },
+    data: {
+      immediate: true,
+      handler() {
+        this.formattedData = this.formatData();
+      }
+    },
   },
   methods: {
     formatData() {
@@ -105,7 +111,7 @@ export default {
         !key.startsWith("_") && !this.ignoreFields.includes(key);
       switch (this.type) {
         case "Asset":
-          return formatAsset(this.data.toJSON(), this.context, filter);
+          return formatAsset(this.data, this.context, filter);
         case "Link":
           return formatLink(this.data, this.context, filter);
         case "Provider":

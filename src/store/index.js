@@ -406,6 +406,13 @@ function getStore(config, router) {
           }
         }
       },
+      force(state, data) {
+        if (!data) {
+          return;
+        }
+        state.data = new STAC(data);
+        state.title = data.title;
+      },
       languages(state, {uiLanguage, dataLanguage}) {
         i18n.global.locale = uiLanguage;
         state.dataLanguage = dataLanguage || null;
