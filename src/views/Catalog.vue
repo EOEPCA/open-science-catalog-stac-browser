@@ -34,6 +34,10 @@
             </b-tabs>
           </b-card>
         </section>
+        <section v-if="isCollection && hasFairAssessment" class="mb-4">
+          <h2>{{ $t('fairAssessment') }}</h2>
+          <FairAssessment :collection="data" />
+        </section>
         <section v-if="isCollection && forumTopicData" class="mb-4">
           <h2>{{ $t('topics') }}</h2>
           <ForumTopics
@@ -72,6 +76,7 @@ import { mapState, mapGetters } from 'vuex';
 import Catalogs from '../components/Catalogs.vue';
 import Description from '../components/Description.vue';
 import ForumTopics from '../components/ForumTopics.vue';
+import FairAssessment from '../components/FairAssessment.vue';
 import Items from '../components/Items.vue';
 import ReadMore from "../components/ReadMore.vue";
 import ShowAssetLinkMixin from '../components/ShowAssetLinkMixin';
@@ -97,6 +102,7 @@ export default defineComponent({
     CollectionLink: defineAsyncComponent(() => import('../components/CollectionLink.vue')),
     DeprecationNotice: defineAsyncComponent(() => import('../components/DeprecationNotice.vue')),
     Description,
+    FairAssessment,
     ForumTopics,
     Items,
     Keywords: defineAsyncComponent(() => import('../components/Keywords.vue')),
@@ -122,7 +128,7 @@ export default defineComponent({
     ...mapState(['data', 'url', 'apiCatalogPriority',  'apiItems', 'apiItemsLink', 'apiItemsPagination', 'apiItemsNumberMatched', 'nextCollectionsLink', 'stateQueryParameters']),
     ...mapGetters(['catalogs', 'collectionLink', 'isCollection', 'items', 'getApiItemsLoading', 'parentLink', 'rootLink']),
     ignoredMetadataFields() {
-      return [
+      const fields = [
         // Catalog and Collection fields that are handled directly
         'stac_version',
         'stac_extensions',
@@ -155,7 +161,24 @@ export default defineComponent({
         'auth:schemes',
         // Special handling for the STAC Browser config
         'stac_browser',
+        // Special handling for FAIR Assessment
+        'access',
       ];
+      // Ignore all fair: fields
+      if (this.data) {
+        Object.keys(this.data).forEach((key) => {
+          if (key.startsWith("fair:")) {
+            fields.push(key);
+          }
+        });
+      }
+      return fields;
+    },
+    hasFairAssessment() {
+      return (
+        isObject(this.data?.access) ||
+        Object.keys(this.data || {}).some((key) => key.startsWith("fair:"))
+      );
     },
     cssStacType() {
       if (hasText(this.data?.type)) {
