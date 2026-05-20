@@ -92,14 +92,14 @@ $body-bg: white;
 $body-color: black;
 
 // Theme colors
-$primary:       #003247;
-$secondary:     #335E6F;
-$success:       #28a745;
-$info:          #09B3AD;
-$warning:       #ffc107;
-$danger:        #dc3545;
-$light:         #f8f9fa; // light means muted
-$dark:          #343a40; // dark means highlighted
+$primary:   #003247;
+$secondary: #335E6F;
+$success:   #28a745;
+$info:      $secondary; // unused
+$warning:   #ffc107;
+$danger:    #dc3545;
+$light:     #f8f9fa; // light means muted
+$dark:      #343a40; // dark means highlighted
 
 // Heading colors
 $h1-color: inherit;
