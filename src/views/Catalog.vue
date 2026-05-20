@@ -82,7 +82,6 @@ import { ItemCollection } from '../models/stac.js';
 import DeprecationMixin from '../components/DeprecationMixin.js';
 import { BTab, BTabs, BCard } from 'bootstrap-vue-next';
 import { getIgnoredFields } from '../ignored-metadata.js';
-import { discourseRoot } from "../custom";
 
 export default defineComponent({
   name: "Catalog",
@@ -231,8 +230,6 @@ export default defineComponent({
       }
     }
   },
-  async mounted() {
-  },
   methods: {
     filtersShown(show) {
         this.$store.commit('updateState', {type: 'itemFilterOpen', value: show ? 1 : null});
@@ -276,7 +273,7 @@ export default defineComponent({
 #stac-browser .cc {
   .meta {
     min-width: 100%;
-    margin-bottom: $block-margin;
+    margin-bottom: var(--sb-block-gap);
   }
   &.collection .meta {
     min-width: 33%;
@@ -309,7 +306,7 @@ export default defineComponent({
     }
   }
 
-  @include media-breakpoint-down(md) {
+  @include media-breakpoint-down(lg) {
     > .row {
       > .meta,
       > .items-container,
@@ -319,7 +316,7 @@ export default defineComponent({
 
       > .meta {
         order: 1;
-        margin-bottom: $block-margin;
+        margin-bottom: var(--sb-block-gap);
       }
       > .items-container {
         order: 2;

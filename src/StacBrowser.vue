@@ -1,5 +1,6 @@
 <template>
   <b-container id="stac-browser">
+    <WidgetHook id="root-start" />
     <Authentication v-if="showLogin" />
     <ErrorAlert v-if="globalError" dismissible class="global-error" v-bind="globalError" @close="hideError" />
     <Sidebar v-if="sidebar !== null" v-model="sidebar" />
@@ -9,10 +10,10 @@
         <b-col md="12">
           <nav class="actions navigation">
             <b-button-group v-if="canSearch || !isServerSelector">
-              <b-button v-if="!isServerSelector" variant="primary" size="sm" :title="$t('browse')" @click="sidebar = !sidebar">
+              <b-button v-if="!isServerSelector" variant="primary" :title="$t('browse')" @click="sidebar = !sidebar">
                 <b-icon-list /><span class="button-label">{{ $t('browse') }}</span>
               </b-button>
-              <b-button v-if="canSearch" variant="primary" size="sm" :to="searchBrowserLink" :title="$t('search.title')" :pressed="isSearchPage">
+              <b-button v-if="canSearch" variant="primary" :to="searchBrowserLink" :title="$t('search.title')" :pressed="isSearchPage">
                 <b-icon-search /><span class="button-label">{{ $t('search.title') }}</span>
               </b-button>
             </b-button-group>
@@ -32,13 +33,21 @@
           </div>
           <nav class="actions user">
             <b-button-group>
-              <b-button v-if="canAuthenticate" variant="primary" size="sm" @click="logInOut" :title="authTitle">
+              <b-button v-if="canAuthenticate" variant="primary" @click="logInOut" :title="authTitle">
                 <component :is="authIcon" /><span class="button-label">{{ authLabel }}</span>
               </b-button>
               <LanguageChooser
                 :data="data" :currentLocale="localeFromVueX" :locales="supportedLocalesFromVueX"
                 @set-locale="locale => switchLocale({locale, userSelected: true})"
               />
+              <b-button
+                v-if="!enforcedColorModeFromVueX || enforcedColorModeFromVueX === 'auto'"
+                variant="primary"
+                @click="toggleColorMode"
+              >
+                <b-icon-sun v-if="colorMode === 'light'" :title="$t('switchToDarkMode')" />
+                <b-icon-moon-stars v-else :title="$t('switchToLightMode')" />
+              </b-button>
             </b-button-group>
           </nav>
         </b-col>
@@ -66,15 +75,18 @@
         </b-col>
       </b-row>
     </header>
-    <!-- Content (Item / Catalog) -->
+    <!-- Content -->
+    <WidgetHook id="root-before-content" />
     <router-view />
+    <!-- Footer -->
     <footer>
-      <ul v-if="Array.isArray(footerLinksFromVueX) && footerLinksFromVueX.length > 0" class="footer-links text-muted">
+      <WidgetHook id="footer-start" />
+      <ul v-if="Array.isArray(footerLinksFromVueX) && footerLinksFromVueX.length > 0" class="footer-links text-body-secondary">
         <li v-for="link in footerLinksFromVueX" :key="link.url">
           <a :href="link.url" target="_blank">{{ $te(`footerLinks.${link.label}`) ? $t(`footerLinks.${link.label}`) : link.label }}</a>
         </li>
       </ul>
-      <i18n-t tag="small" keypath="poweredBy" class="poweredby text-muted" scope="global">
+      <i18n-t tag="small" keypath="poweredBy" class="poweredby text-body-secondary" scope="global">
         <template #link>
           <a href="https://github.com/radiantearth/stac-browser" target="_blank">STAC Browser</a> {{ browserVersion }}
         </template>
@@ -87,6 +99,7 @@
     >
       <RootStats />
     </b-popover>
+    <WidgetHook id="root-end" />
   </b-container>
 </template>
 
@@ -94,7 +107,8 @@
 import { defineComponent, defineAsyncComponent } from 'vue';
 import { isNavigationFailure, NavigationFailureType } from 'vue-router';
 import { mapMutations, mapActions, mapGetters, mapState } from 'vuex';
-import CONFIG from './config';
+import { useColorMode } from 'bootstrap-vue-next';
+import CONFIG from './merged-config';
 
 // Import icons needed for dynamic component usage
 import BIconLock from '~icons/bi/lock';
@@ -113,6 +127,7 @@ import { getBest, prepareSupported } from 'stac-js/src/locales';
 import BrowserStorage from "./browser-store";
 import Authentication from "./components/Authentication.vue";
 import { getDisplayTitle } from "./models/stac";
+import Auth from './auth';
 
 // Pass Config through from props to vuex
 let Props = {};
@@ -151,6 +166,7 @@ export default defineComponent({
   },
   data() {
     return {
+      colorMode: null,
       sidebar: null,
       error: null,
       onDataLoaded: null,
@@ -165,7 +181,9 @@ export default defineComponent({
       localeFromVueX: 'locale',
       detectLocaleFromBrowserFromVueX: 'detectLocaleFromBrowser',
       supportedLocalesFromVueX: 'supportedLocales',
-      storeLocaleFromVueX: 'storeLocale'
+      storeLocaleFromVueX: 'storeLocale',
+      enforcedColorModeFromVueX: 'enforcedColorMode',
+      colorModeFromVueX: 'colorMode'
     }),
     ...mapGetters(['canSearch', 'collectionLink', 'description', 'fromBrowserPath', 'isExternalUrl', 'isRoot', 'parentLink', 'root', 'rootLink', 'supportsConformance', 'title', 'toBrowserPath']),
     ...mapGetters('auth', { authMethod: 'method' }),
@@ -352,7 +370,7 @@ export default defineComponent({
             }
           }
           else if (value !== null) {
-              query[name] = value;
+            query[name] = value;
           }
         }
 
@@ -371,7 +389,6 @@ export default defineComponent({
     root(root, oldRoot) {
       const canChange = [
         'apiCatalogPriority',
-        'authConfig', // except for the 'formatter', which can't be encoded in JSON
         'cardViewMode',
         'cardViewSort',
         'crossOriginMedia',
@@ -406,6 +423,22 @@ export default defineComponent({
       if (data instanceof STAC) {
         this.onDataLoaded();
       }
+    },
+    enforcedColorModeFromVueX: {
+      immediate: true,
+      handler(value) {
+        if (value && value !== 'auto') {
+          this.colorMode = value;
+        }
+      }
+    },
+    colorModeFromVueX(value) {
+      if (value && value !== this.colorMode) {
+        this.colorMode = value;
+      }
+    },
+    colorMode(value) {
+      this.$store.commit('setColorMode', value);
     }
   },
   async created() {
@@ -425,6 +458,12 @@ export default defineComponent({
       },
       false,
     );
+    
+    this.colorMode = useColorMode({
+      selector: 'body',
+      initialValue: this.enforcedColorModeFromVueX
+    });
+
     await this.$router.isReady();
     this.detectLocale();
     this.parseQuery(this.$route);
@@ -453,10 +492,8 @@ export default defineComponent({
       document.getElementById('og-url').setAttribute("content", window.location.href);
     });
 
-    const storage = new BrowserStorage(true);
-    const authConfig = storage.get('authConfig');
+    const authConfig = Auth.restoreLastMethod();
     if (authConfig) {
-      storage.remove('authConfig');
       await this.$store.dispatch('config', { authConfig });
     }
   },
@@ -480,6 +517,9 @@ export default defineComponent({
     ...mapActions(['switchLocale']),
     ...mapMutations('auth', ['addAction']),
     ...mapActions('auth', ['requestLogin', 'requestLogout']),
+    toggleColorMode() {
+      this.colorMode = this.colorMode === 'light' ? 'dark' : 'light';
+    },
     getIcon(data) {
       if (data instanceof STAC) {
         const icons = data.getIcons();
@@ -602,4 +642,3 @@ export default defineComponent({
 @import "./theme/page.scss";
 @import "./theme/custom.scss";
 </style>
-
