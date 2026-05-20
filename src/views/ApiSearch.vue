@@ -4,28 +4,36 @@
     <ErrorAlert v-else-if="!supportsSearch" :description="$t('search.notSupported')" />
     <b-row v-else>
       <b-col class="left">
+        <WidgetHook id="view-search-filters-start" />
         <b-tabs v-model="activeSearch">
           <b-tab v-if="collectionSearch" :title="$t('search.tabs.collections')" id="search-collections-tab">
+            <WidgetHook id="view-search-filters-collections-start" />
             <SearchFilter
               :parent="parent" title="" :value="collectionFilters" type="Collections"
               @input="setFilters"
             />
+            <WidgetHook id="view-search-filters-collections-end" />
           </b-tab>
           <b-tab v-if="itemSearch" :title="$t('search.tabs.items')" id="search-items-tab">
+            <WidgetHook id="view-search-filters-items-start" />
             <SearchFilter
               :parent="parent" title="" :value="itemFilters" type="Global"
+              :searchLink="itemSearch"
               @input="setFilters"
             />
+            <WidgetHook id="view-search-filters-items-end" />
           </b-tab>
         </b-tabs>
+        <WidgetHook id="view-search-filters-end" />
       </b-col>
       <b-col class="right">
         <Loading v-if="loading" fill top />
         <ErrorAlert v-else-if="error" :description="error" :id="errorId" />
-        <b-alert v-else-if="data === null" variant="info" show>{{ $t('search.modifyCriteria') }}</b-alert>
-        <b-alert v-else-if="results.length === 0 && noFurtherItems" variant="info" show>{{ $t('search.noFurtherItemsFound') }}</b-alert>
+        <b-alert v-else-if="data === null" variant="secondary" show>{{ $t('search.modifyCriteria') }}</b-alert>
+        <b-alert v-else-if="results.length === 0 && noFurtherItems" variant="secondary" show>{{ $t('search.noFurtherItemsFound') }}</b-alert>
         <b-alert v-else-if="results.length === 0" variant="warning" show>{{ $t('search.noItemsFound') }}</b-alert>
         <template v-else>
+          <WidgetHook id="view-search-results-start" />
           <div id="search-map" v-if="resultCollection">
             <MapView :stac="parent" :children="resultCollection" onfocusOnly popover />
           </div>
@@ -51,14 +59,16 @@
             :pagination="pagination" :loading="loading" @paginate="loadResults"
             :count="totalCount" :apiFilters="itemFilters"
           />
+          <WidgetHook id="view-search-results-end" />
         </template>
       </b-col>
     </b-row>
-    <b-alert v-if="selectedCollectionCount > 0" show variant="dark" class="selected-collections-action">
-      <b-button @click="openItemSearch" variant="primary" size="lg">
-        {{ $t('search.useInItemSearch', selectedCollectionCount, {count: selectedCollectionCount}) }}
-      </b-button>
-    </b-alert>
+    <b-button
+      v-if="selectedCollectionCount> 0" @click="openItemSearch"
+      variant="primary" size="lg" class="selected-collections-action"
+    >
+      {{ $t('search.useInItemSearch', selectedCollectionCount, {count: selectedCollectionCount}) }}
+    </b-button>
   </main>
 </template>
 
@@ -319,17 +329,20 @@ export default defineComponent({
 }
 
 #search-map {
-  margin-bottom: $block-margin;
+  margin-bottom: var(--sb-block-gap);
 }
 
 #stac-browser .search {
   .selected-collections-action {
     position: fixed;
-    bottom: 0;
-    right: 0;
+    bottom: 2rem;
+    right: 2rem;
     z-index: 5000;
-    margin: 1rem;
-    box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 6px 14px 0 rgba(0, 0, 0, 0.5);
+
+    &:hover {
+      box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.6);
+    }
   }
 
   .left {

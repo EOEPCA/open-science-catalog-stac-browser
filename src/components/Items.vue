@@ -20,6 +20,7 @@
         <SearchFilter
           type="Items"
           :title="$t('items.filter')" :parent="stac"
+          :searchLink="itemSearchLink"
           :value="apiFilters" @input="emitFilter"
         />
       </b-collapse>
@@ -127,7 +128,7 @@ export default defineComponent({
       return this.items.length > this.shownItems;
     },
     filterCount() {
-      return Object.values(this.apiFilters).filter(filter => !(filter === null || size(filter) === 0)).length;
+      return Object.values(this.apiFilters).filter(filter => filter !== null && size(filter) > 0).length;
     },
     hasFilters() {
       return this.filterCount > 0;
@@ -159,6 +160,9 @@ export default defineComponent({
         }
       }
       return false;
+    },
+    itemSearchLink() {
+      return this.stac && typeof this.stac.getApiItemsLink === 'function' ? this.stac.getApiItemsLink() : null;
     }
   },
   watch: {

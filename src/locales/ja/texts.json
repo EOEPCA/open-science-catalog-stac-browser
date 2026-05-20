@@ -53,6 +53,7 @@
     "true": "はい"
   },
   "copy": "コピー",
+  "copyErrors": {},
   "default": "デフォルト",
   "defaultWithValue": "デフォルト ({value})",
   "deprecated": "非推奨",
@@ -91,6 +92,7 @@
     "serverError": "サーバーに問題が発生しました。@:errors.contactProvider",
     "unauthorized": "リクエストには認証情報がありません（例:APIトークン。）認証情報を入力して再度お試し下さい。"
   },
+  "exampleCode": {},
   "featureExperimental": "この機能はまだ実験的で、予期しない結果をもたらす可能性があります。",
   "features": {},
   "fullscreen": {
@@ -172,6 +174,7 @@
     "previous": "‹ 前"
   },
   "poweredBy": "提供: {link}",
+  "programming": {},
   "protocol": {
     "azure": "Microsoft Azure",
     "file": "ファイルシステム (ローカル)",

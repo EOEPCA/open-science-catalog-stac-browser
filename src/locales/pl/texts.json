@@ -71,6 +71,7 @@
     "true": "Tak"
   },
   "copy": "Kopiuj",
+  "copyErrors": {},
   "default": "Domyślny",
   "defaultWithValue": "Domyślny ({value})",
   "deprecated": "Przestarzały",
@@ -111,6 +112,7 @@
     "title": "Błąd",
     "unauthorized": "Żądanie nie zawiera danych uwierzytelniających, np. tokenu API. Podaj dane uwierzytelniające i spróbuj ponownie."
   },
+  "exampleCode": {},
   "featureExperimental": "Ta funkcja jest w fazie testowej i może dawać nieoczekiwane wyniki!",
   "features": {
     "empty": "Brak dostępnych obiektów.",
@@ -213,6 +215,7 @@
     "previous": "‹ Poprzednia"
   },
   "poweredBy": "Wspierane przez {link}",
+  "programming": {},
   "protocol": {
     "azure": "Microsoft Azure",
     "file": "system plików (lokalny)",

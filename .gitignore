@@ -6,8 +6,10 @@ node_modules
 
 # local env files
 .env
-.env.local
-.env.*.local
+.env.*
+
+# configuration overrides
+config.local.*
 
 # lock files
 /yarn.lock
@@ -32,3 +34,6 @@ pnpm-debug.log*
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# integration test outputs
+/tests/integration/generated/

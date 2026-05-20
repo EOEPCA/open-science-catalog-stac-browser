@@ -4,8 +4,8 @@
       <b-button variant="danger" v-if="requiresAuth" tag="a" tabindex="0" :id="`popover-href-${id}-btn`" @click="handleAuthButton">
         <b-icon-lock /> {{ $t('authentication.required') }}
       </b-button>
-      <b-button v-if="hasDownloadButton" :disabled="requiresAuth" variant="primary" v-bind="downloadProps" v-on="downloadEvents">
-        <b-spinner v-if="loading" small variant="light" />
+      <b-button v-if="canDownload && !requiresAuth" variant="primary" v-bind="downloadProps" v-on="downloadEvents">
+        <b-spinner v-if="loading" small />
         <b-icon-box-arrow-up-right v-else-if="browserCanOpenFile" />
         <b-icon-download v-else />
         {{ buttonText }}
@@ -13,7 +13,7 @@
       <CopyButton variant="primary" :copyText="href" :title="href">
         {{ copyButtonText }}
       </CopyButton>
-      <b-button v-if="hasShowButton" @click="show" variant="primary">
+      <b-button v-if="hasShowButton && !requiresAuth" @click="show" variant="primary">
         <b-icon-eye class="me-1" />
         <template v-if="isThumbnail">{{ $t('assets.showThumbnail') }}</template>
         <template v-else>{{ $t('assets.showOnMap') }}</template>
@@ -50,7 +50,9 @@ import { URI } from 'stac-js/src/utils.js';
 import AuthUtils from './auth/utils';
 import { Asset } from 'stac-js';
 import { browserProtocols } from 'stac-js/src/http';
-import { imageMediaTypes } from 'stac-js/src/mediatypes';
+import { imageMediaTypes, zarrMediaTypes } from 'stac-js/src/mediatypes';
+
+const disableDownloadTypes = [...zarrMediaTypes];
 
 let i = 0;
 
@@ -139,11 +141,11 @@ export default {
     hasShowButton() {
       return this.isAsset && this.canShow && !this.shown;
     },
-    hasDownloadButton() {
-      return this.isAsset && this.isBrowserProtocol;
+    canDownload() {
+      return this.isAsset && this.isBrowserProtocol && !disableDownloadTypes.includes(this.data?.type);
     },
     downloadEvents() {
-      if (this.hasDownloadButton && this.useAltDownloadMethod) {
+      if (this.canDownload && this.useAltDownloadMethod) {
         return {
           click: async (event) => {
             event.preventDefault();
@@ -154,7 +156,7 @@ export default {
       return {};
     },
     downloadProps() {
-      if (this.hasDownloadButton && !this.useAltDownloadMethod) {
+      if (this.canDownload && !this.useAltDownloadMethod) {
         const props = {
           href: this.href,
           target: '_blank',

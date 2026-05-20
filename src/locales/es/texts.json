@@ -70,7 +70,12 @@
     "false": "no",
     "true": "si"
   },
+  "close": "Cerrar",
   "copy": "Copia",
+  "copyErrors": {
+    "permission": "No se puede copiar. Por favor, comprueba los permisos del navegador.",
+    "unsupported": "El portapapeles no está disponible en este navegador."
+  },
   "default": "Predeterminado",
   "defaultWithValue": "Predeterminado ({value})",
   "deprecated": "Obsoleto",
@@ -111,6 +116,11 @@
     "serverError": "El servidor encontró un problema. @:errors.contactProvider",
     "title": "Error",
     "unauthorized": "La petición no tiene credenciales, por ejemplo, un token de la API. Por favor introduzca sus credenciales y pruebe de nuevo."
+  },
+  "exampleCode": {
+    "title": "Código de Ejemplo",
+    "storeAs": "Guardar código como:",
+    "installDependencies": "Instala las dependencias:"
   },
   "featureExperimental": "¡Esta funcionalidad es experimental y puede producir resultados inesperados!",
   "features": {
@@ -224,6 +234,14 @@
     "previous": "‹ Anterior"
   },
   "poweredBy": "Ofrecido por {link}",
+  "programming": {
+    "csharp": "C#",
+    "java": "Java",
+    "javascript": "JavaScript",
+    "python": "Python",
+    "r": "R",
+    "rust": "Rust"
+  },
   "protocol": {
     "azure": "Microsoft Azure",
     "file": "sistema de archivos (local)",
@@ -399,6 +417,8 @@
   "stacCollection": "Colección | Colecciones",
   "stacItem": "Elemento | Elementos",
   "submit": "Enviar",
+  "switchToDarkMode": "Cambiar a modo oscuro",
+  "switchToLightMode": "Cambiar a modo claro",
   "table": {
     "emptyFilteredText": "No hay ningún registro que concuerde con su búsqueda",
     "emptyText": "No hay registros para mostrar",

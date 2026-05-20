@@ -29,7 +29,7 @@ import { defineAsyncComponent } from 'vue';
 import MapMixin from './maps/MapMixin.js';
 import LayerControl from './maps/LayerControl.vue';
 import TextControl from './maps/TextControl.vue';
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import Select from 'ol/interaction/Select';
 import StacLayer from 'ol-stac';
 import { getStacObjectsForEvent, getStyle } from 'ol-stac/util.js';
@@ -86,6 +86,7 @@ export default {
     };
   },
   computed: {
+    ...mapState(['displayOverviewsForChildren']),
     ...mapGetters(['getStac']),
     container() {
       if (this.isFullScreen) {
@@ -96,8 +97,10 @@ export default {
       }
     },
     childrenOptions() {
+      const showItems = this.children && this.children.isItemCollection;
       return {
-        displayPreview: this.children && this.children.isItemCollection
+        displayPreview: showItems,
+        displayOverview: showItems && this.displayOverviewsForChildren
       };
     }
   },
@@ -248,7 +251,7 @@ export default {
         return null;
       }
       return this.stacLayer.getLayers().getArray()
-        .filter(layer => MapUtils.isLayerVisible(layer))
+        .filter(layer => MapUtils.isLayerVisible(this.map, layer))
         .map(layer => layer.get('stac'))
         .filter(stac => stac instanceof STACReference);
     }

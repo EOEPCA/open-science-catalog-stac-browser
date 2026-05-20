@@ -6,7 +6,7 @@
     <Loading v-else-if="loading || working" stretch />
     <section v-else-if="report">
       <h2>{{ $t('source.validationReport.title') }}</h2>
-      <b-alert variant="info" show>{{ $t('source.validationReport.disclaimer') }}</b-alert>
+      <b-alert variant="warning" show>{{ $t('source.validationReport.disclaimer') }}</b-alert>
       <b-row class="stac-id">
         <b-col cols="4">{{ $t('source.id') }}</b-col>
         <b-col>
@@ -23,16 +23,23 @@
 
       <hr class="my-4">
 
-      <b-card-group class="results" columns>
-        <ValidationResult
-          id="core" :errors="report.results.core" :warnings="report.messages"
-          :locale="locale" :context="report"
-        />
-        <ValidationResult
-          v-for="(errors, key) in report.results.extensions" :key="key"
-          :id="key" :errors="errors" :locale="locale" :context="report"
-        />
-      </b-card-group>
+      <div class="results row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xxxl-4 g-3">
+        <div class="col">
+          <ValidationResult
+            id="core" :errors="report.results.core" :warnings="report.messages"
+            :locale="locale" :context="report"
+          />
+        </div>
+        <div
+          class="col"
+          v-for="(errors, key) in report.results.extensions"
+          :key="key"
+        >
+          <ValidationResult
+            :id="key" :errors="errors" :locale="locale" :context="report"
+          />
+        </div>
+      </div>
     </section>
     <ErrorAlert v-else :description="$t('errors.default')" />
   </main>
@@ -44,13 +51,11 @@ import { defineComponent } from 'vue';
 import validateSTAC from 'stac-node-validator';
 import BrowseMixin from './BrowseMixin.js';
 import { STAC } from 'stac-js';
-import { BCardGroup } from 'bootstrap-vue-next';
 import ValidationResult from '../components/ValidationResult.vue';
 
 export default defineComponent({
   name: "Validation",
   components: {
-    BCardGroup,
     ValidationResult
   },
   mixins: [
@@ -121,22 +126,5 @@ export default defineComponent({
 <style lang="scss" scoped>
 .report {
   font-weight: bold;
-}
-</style>
-
-<style lang="scss">
-@import 'bootstrap/scss/mixins';
-@import "../theme/variables.scss";
-
-#stac-browser .validation .results.card-columns {
-  @include media-breakpoint-up(sm) {
-    column-count: 2;
-  }
-  @include media-breakpoint-up(lg) {
-    column-count: 3;
-  }
-  @include media-breakpoint-up(xxxl) {
-    column-count: 4;
-  }
 }
 </style>

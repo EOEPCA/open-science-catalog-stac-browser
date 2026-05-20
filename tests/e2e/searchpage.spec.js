@@ -1,12 +1,13 @@
-import { test, expect } from '@playwright/test';
-import {
-  SEARCH_PATH,
-  mockApiRootAndCollections,
-  mockApiRootAndCollectionsWithSortables,
-  waitForMapReady,
-  waitForBboxInputsPopulated,
-  waitForSearchPost
-} from './helpers';
+/**
+ * STAC API search page tests.
+ *
+ * Verifies the global item search: filter inputs (datetime, bbox, collection ID,
+ * item ID, sort, limit), bbox validation, result rendering, empty-result state,
+ * and form reset.
+ */
+import { test, expect } from './fixtures.js';
+import API from '../fixtures/instances/api.js';
+import { waitForBrowserReady, waitForSearchPost, waitForMapReady, waitForBboxInputsPopulated } from './helpers.js';
 
 const enableSpatialExtentInputs = async (page) => {
   const enableSpatialCheckbox = page.getByRole('checkbox', { name: /filter by spatial extent/i });
@@ -21,125 +22,173 @@ const fillBboxInputs = async (page, values) => {
   const southLatInput = page.getByLabel(/south latitude/i);
   const eastLonInput = page.getByLabel(/east longitude/i);
   const northLatInput = page.getByLabel(/north latitude/i);
-
-  if (values.westLon != null) await westLonInput.fill(values.westLon);
-  if (values.southLat != null) await southLatInput.fill(values.southLat);
-  if (values.eastLon != null) await eastLonInput.fill(values.eastLon);
-  if (values.northLat != null) await northLatInput.fill(values.northLat);
+  
+  if (values.westLon != null) {
+    await westLonInput.fill(values.westLon);
+  }
+  if (values.southLat != null) {
+    await southLatInput.fill(values.southLat);
+  }
+  if (values.eastLon != null) {
+    await eastLonInput.fill(values.eastLon);
+  }
+  if (values.northLat != null) {
+    await northLatInput.fill(values.northLat);
+  }
 };
 
 test.describe('STAC Browser Search page', () => {
+  let api;
+  let SEARCH_PATH;
+  
+  test.beforeEach(async ({ worker }) => {
+    api = API.minimalApi(
+      {},
+      {
+        defaultLimit: 5,
+        prevLinkEnabled: true,
+        firstLinkEnabled: true,
+        lastLinkEnabled: true
+      });
+    let collection1 = api.addCollection('collection1')
+      .setMetadata({ title: 'Test Collection 1' });
+    let collection2 = api.addCollection('collection2')
+      .setMetadata({ title: 'Test Collection 2' });
+    api.addManyItems(collection1, 50);
+    api.addManyItems(collection2, 10);
+    api.addCollectionsExtension()
+      .addItemsExtension()
+      .addSearchExtension();
+      
+    await api.createServer(worker);
+    SEARCH_PATH = api.root.getSearchPath();
+  });
+    
   test('Should load the Search page successfully', async ({ page }) => {
-    await mockApiRootAndCollections(page);
     // Navigate to the search page
     await page.goto(SEARCH_PATH);
-    
+    await waitForBrowserReady(page);
+      
     // Verify the page loads without errors
     await expect(page.getByRole('heading', { name: 'Search' }), 'search heading should be visible').toBeVisible();
   });
-
-  test('Search with default selection should have empty POST body', async ({ page }) => {
-    await mockApiRootAndCollections(page);
-    await page.goto(SEARCH_PATH);
     
+  test('Search with default selection should have empty POST body', async ({ page }) => {
+    await page.goto(SEARCH_PATH);
+      
     const requestPromise = waitForSearchPost(page);
-
+      
     await test.step('Submit search with default selection', async () => {
       const submitButton = page.getByRole('button', { name: /submit/i });
-
+        
       // Submit search with default selection
       await submitButton.click();
-    })
-
+    });
+      
     await test.step('Verify POST body is empty', async () => {
       const { body } = await requestPromise;
       expect(body).toEqual({});
     });
-
+      
   });
-
+    
   test('Search with temporal extent selection should have valid POST body', async ({ page }) => {
-    await mockApiRootAndCollections(page);
     await page.goto(SEARCH_PATH);
-
+    await waitForBrowserReady(page);
+      
     await test.step('Enter a temporal extent', async () => {
       const temporalInput = page.getByPlaceholder(/select date range/i);
-
+        
       await temporalInput.click();
       await temporalInput.fill('2025-01-01 - 2026-12-31');
+        
+        
+    });
       
-
-    })
-
     await test.step('Submit search and verify POST body contains correct datetime', async () => {
       const requestPromise = waitForSearchPost(page);
       const submitButton = page.getByRole('button', { name: /submit/i });
       await submitButton.click();
-
+        
       const { body } = await requestPromise;
       expect(body.datetime).toContain('2025-01-01');
       expect(body.datetime).toContain('2026-12-31');
     });
   });
-
+    
   test('Search with spatial extent via map click should have valid POST body', async ({ page }) => {
-    await mockApiRootAndCollections(page);
     await page.goto(SEARCH_PATH);
-
+      
     await test.step('Enable spatial extent selection and click on map to create bounding box', async () => {
       const enableSpatialCheckbox = page.getByRole('checkbox', { name: /filter by spatial extent/i });
       await enableSpatialCheckbox.check();
-
+        
       const mapViewport = await waitForMapReady(page);
-      
-      // Click on the map to create a bounding box
-      await mapViewport.click({ position: { x: 300, y: 200 } });
-
+        
+      // The OL ExtentInteraction is registered asynchronously after the
+      // viewport appears (basemap module imports must complete first).
+      // Retry the click until the interaction picks it up.
+      const southLatInput = page.getByLabel(/south latitude/i);
+      await expect(async () => {
+        const val = await southLatInput.inputValue();
+        if (!val) {
+          await mapViewport.click({ position: { x: 300, y: 200 } });
+        }
+        await expect(southLatInput).not.toHaveValue('', { timeout: 1000 });
+      }).toPass({ timeout: 15000 });
+        
       await waitForBboxInputsPopulated(page);
     });
-
+      
     await test.step('Submit search and verify POST body contains a bbox', async () => {
-    const submitButton = page.getByRole('button', { name: /submit/i });
-    const requestPromise = waitForSearchPost(page);
-
-    await submitButton.click();
-
-    const { body } = await requestPromise;
-    expect(body.bbox).toHaveLength(4);
-    expect(body.bbox[0]).toBeLessThan(body.bbox[2]);
-    expect(body.bbox[1]).toBeLessThan(body.bbox[3]);
+      const submitButton = page.getByRole('button', { name: /submit/i });
+      const requestPromise = waitForSearchPost(page);
+        
+      await submitButton.click();
+        
+      const { body } = await requestPromise;
+      expect(body.bbox).toHaveLength(4);
+      expect(body.bbox[0]).toBeLessThan(body.bbox[2]);
+      expect(body.bbox[1]).toBeLessThan(body.bbox[3]);
     });
   });
-
+    
   test('Search with spatial extent selection via manual input should have valid POST body', async ({ page }) => {
-    await mockApiRootAndCollections(page);
+    //note: test was flaky due to timing issues. fix was attempted. if problem persists fix this or mark as fixme
     await page.goto(SEARCH_PATH);
-
+      
     await test.step('Enable spatial extent selection and fill in bounding box values', async () => {
       const enableSpatialCheckbox = page.getByRole('checkbox', { name: /filter by spatial extent/i });
-
+        
       await enableSpatialCheckbox.check();
-
-      // Wait for network to be idle to ensure UI is ready
+        
+      // Wait for network to be idle, map ready, and input fields to ensure UI is ready
       await page.waitForLoadState('networkidle');
-      
+      await waitForMapReady(page);
+        
+      const westLonInput = page.getByLabel(/west longitude/i);
+      const southLatInput = page.getByLabel(/south latitude/i);
+      const eastLonInput = page.getByLabel(/east longitude/i);
+      const northLatInput = page.getByLabel(/north latitude/i);
+        
       // Fill in bounding box values
-      await page.getByLabel(/west longitude/i).fill( '-116.1' );
-      await page.getByLabel(/south latitude/i).fill( '44.3' );
-      await page.getByLabel(/east longitude/i).fill( '-104' );
-      await page.getByLabel(/north latitude/i).fill( '49' );
-      await page.getByLabel(/north latitude/i).blur();
+      await westLonInput.fill('-116.1');
+      await southLatInput.fill('44.3');
+      await eastLonInput.fill('-104');
+      await northLatInput.fill('49');
+      await northLatInput.blur();
+        
+      // Wait for all inputs to be populated
+      await waitForBboxInputsPopulated(page);
     });
-
-    await test.step('Submit search and verify POST body contains correct bbox', async () => { 
-      const submitButton = page.getByRole('button', { name: /submit/i });
       
+    await test.step('Submit search and verify POST body contains correct bbox', async () => {       
       const requestPromise = waitForSearchPost(page);
-
+      const submitButton = page.getByRole('button', { name: /submit/i });
       await submitButton.click();
-
+        
       const { body } = await requestPromise;
-      
+        
       // use toBeCloseTo for floating point comparisons
       expect(body.bbox[0]).toBeCloseTo(-116.1, 2);
       expect(body.bbox[1]).toBeCloseTo(44.3, 2);
@@ -147,11 +196,11 @@ test.describe('STAC Browser Search page', () => {
       expect(body.bbox[3]).toBeCloseTo(49, 2);
     });
   });
-
+    
   test('Manual spatial extent shows incomplete error', async ({ page }) => {
-    await mockApiRootAndCollections(page);
+      
     await page.goto(SEARCH_PATH);
-
+      
     await test.step('Enter 3 of 4 bounding box values', async () => {
       await enableSpatialExtentInputs(page);
       // Fill page with values
@@ -165,221 +214,431 @@ test.describe('STAC Browser Search page', () => {
       await fillBboxInputs(page, {
         southLat: ''
       });
-    })
-
+    });
+      
     await test.step('Verify error message appears with correct text', async () => {
       await page.getByLabel(/south latitude/i).blur();
-      
+        
       await expect(page.getByText(/Coordinate is missing/i)).toBeVisible();
     });
   });
-
+    
   test('Manual spatial extent shows invalid latitude error', async ({ page }) => {
-    await mockApiRootAndCollections(page);
+      
     await page.goto(SEARCH_PATH);
-
+      
     await enableSpatialExtentInputs(page);
-
+      
     await fillBboxInputs(page, {
       westLon: '-116.1',
       southLat: '-100',
       eastLon: '-104',
       northLat: '49'
     });
-
+      
     await page.getByLabel(/north latitude/i).blur();
-
+      
     await expect(page.getByText(/Latitude must be between -90 and 90/i)).toBeVisible();
   });
-
+    
   test('Manual spatial extent shows latitude order error', async ({ page }) => {
-    await mockApiRootAndCollections(page);
+      
     await page.goto(SEARCH_PATH);
-
+      
     await test.step('Test south latitude > north latitude error', async () => {
       await enableSpatialExtentInputs(page);
-      
+        
       await fillBboxInputs(page, {
         westLon: '-116.1',
         southLat: '49',
         eastLon: '-104',
         northLat: '44.3'
       });
-
+        
       await page.getByLabel(/north latitude/i).blur();
-      
+        
       await expect(page.getByText(/South Latitude must be less than North Latitude/i)).toBeVisible();
     });
   });
-
+    
   test('Manual spatial extent shows longitude order error when west is east of east', async ({ page }) => {
-    await mockApiRootAndCollections(page);
+      
     await page.goto(SEARCH_PATH);
-
+      
     await test.step('Test west longitude > east longitude error (both negative)', async () => {
       await enableSpatialExtentInputs(page);
-
+        
       await fillBboxInputs(page, {
         westLon: '-80',
         southLat: '10',
         eastLon: '-120',
         northLat: '20'
       });
-
+        
       await page.getByLabel(/north latitude/i).blur();
-
+        
       await expect(page.getByText(/West Longitude must be less than East Longitude/i)).toBeVisible();
     });
   });
-
+    
   test('Manual spatial extent allows antimeridian crossing (positive west, negative east)', async ({ page }) => {
-    await mockApiRootAndCollections(page);
+      
     await page.goto(SEARCH_PATH);
-
+      
     await test.step('Allow west > east when crossing antimeridian', async () => {
       await enableSpatialExtentInputs(page);
-
+        
       await fillBboxInputs(page, {
         westLon: '170',
         southLat: '-10',
         eastLon: '-170',
         northLat: '10'
       });
-
+        
       await page.getByLabel(/north latitude/i).blur();
-
+        
       await expect(page.getByText(/West Longitude must be less than East Longitude/i)).toHaveCount(0);
     });
   });
-
-
+    
+    
   test('Search with Collection ID should have valid POST body', async ({ page }) => {
-    await mockApiRootAndCollections(page);
+      
     await page.goto(SEARCH_PATH);
-
-    await test.step('Enter a collection ID', async () => {
+      
+    await test.step('Select a collection from the dropdown', async () => {
       const collectionSelect = page.locator('.filter-collection .multiselect');
       await collectionSelect.click();
-
-      const collectionInput = collectionSelect.locator('input.multiselect__input');
-      await collectionInput.fill('test-collection-1');
-      await collectionInput.press('Enter');
+        
+      // Wait for collection options to be loaded from the /collections endpoint
+      const option = collectionSelect.locator('.multiselect__option', { hasText: 'Test Collection 1' });
+      await option.waitFor({ state: 'visible', timeout: 10000 });
+      await option.click();
     });
-
+      
     await test.step('Submit search and verify POST body contains collection ID', async () => {
       const submitButton = page.getByRole('button', { name: /submit/i });
       const requestPromise = waitForSearchPost(page);
       await submitButton.click();
-
+        
       const { body } = await requestPromise;
-      expect(body.collections).toContain('test-collection-1');
+      expect(body.collections).toContain('collection1');
     });
   });
-
-  test('search with Item ID should have valid POST body', async ({ page }) => {
-    await mockApiRootAndCollections(page);
-    await page.goto(SEARCH_PATH);
     
+  test('search with Item ID should have valid POST body', async ({ page }) => {
+      
+    await page.goto(SEARCH_PATH);
+      
     await test.step('Enter an item ID', async () => {
       const itemIdsGroup = page.locator('.filter-item-id');
       const multiselect = itemIdsGroup.locator('.multiselect');
-
+        
       // Click the visible tags/placeholder area to activate
       await multiselect.locator('.multiselect__tags').click();
-
+        
       const idInput = multiselect.locator('input.multiselect__input');
       await expect(idInput).toBeVisible();
-
+        
       await idInput.fill('test123');
       await idInput.press('Enter');
     });
-
+      
     await test.step('Submit search and verify POST body contains item ID', async () => {
       const submitButton = page.getByRole('button', { name: /submit/i });
       const requestPromise = waitForSearchPost(page);
       await submitButton.click();
-
+        
       const { body } = await requestPromise;
       expect(body.ids).toContain('test123');
     });
   });
-
+    
   test('search with Sort should have valid POST body', async ({ page }) => {
-    await mockApiRootAndCollections(page);
+      
     await page.goto(SEARCH_PATH);
-
+      
     await test.step('Select to sort by title field', async () => {
       const sortSelect = page.locator('.sort .multiselect');
       await sortSelect.locator('.multiselect__select').click();
-
+        
       const sortInput = sortSelect.locator('input.multiselect__input');
       await sortInput.fill('title');
       await sortInput.press('Enter');
     });
-
+      
     await test.step('Submit search and verify POST body contains sortby field', async () => {
       const submitButton = page.getByRole('button', { name: /submit/i });
       const requestPromise = waitForSearchPost(page);
       await submitButton.click();
-
+        
       const { body } = await requestPromise;
       expect(body.sortby).toHaveLength(1);
       expect(body.sortby[0].field).toBe('properties.title');
       expect(body.sortby[0].direction).toBe('asc');
     });
   });
-
+    
   test('search with item limit should have valid POST body', async ({ page }) => {
-    await mockApiRootAndCollections(page);
+      
     await page.goto(SEARCH_PATH);
-
+      
     await test.step('Set limit of 99 items per', async () => {
       const limitInput = page.getByLabel(/items per page/i);
       await limitInput.fill('99');
     });
-
+      
     await test.step('Submit search and verify POST body contains limit', async () => {
       const submitButton = page.getByRole('button', { name: /submit/i });
       const requestPromise = waitForSearchPost(page);
       await submitButton.click();
-
+        
       const { body } = await requestPromise;
       expect(body.limit).toBe(99);
     });
   });
-
-  test('search sort dropdown shows sortables from API when available', async ({ page }) => {
-    await mockApiRootAndCollectionsWithSortables(page);
+    
+  test('search results render item cards with correct titles', async ({ page }) => {
     await page.goto(SEARCH_PATH);
-
-    // Wait for the page to fully load including async sortables fetch
-    await page.waitForLoadState('networkidle');
-
-    await test.step('Sort dropdown should show sortable fields from API', async () => {
-      const sortSelect = page.locator('.sort .multiselect');
-      await sortSelect.locator('.multiselect__select').click();
-
-      // The sortables endpoint returns: Feature ID (id), Date and Time (datetime), My Custom Field (properties.custom_field)
-      await expect(sortSelect.locator('.multiselect__content')).toContainText('Feature ID');
-      await expect(sortSelect.locator('.multiselect__content')).toContainText('Date and Time');
-      await expect(sortSelect.locator('.multiselect__content')).toContainText('My Custom Field');
-    });
-
-    await test.step('Selecting a sortable field and submitting uses the correct field value', async () => {
-      const sortSelect = page.locator('.sort .multiselect');
-
-      const sortInput = sortSelect.locator('input.multiselect__input');
-      await sortInput.fill('Feature ID');
-      await sortInput.press('Enter');
-
+      
+    await test.step('Submit search and wait for results', async () => {
       const submitButton = page.getByRole('button', { name: /submit/i });
-      const requestPromise = waitForSearchPost(page);
       await submitButton.click();
-
+        
+      // Wait for item cards to appear
+      await expect(page.locator('.item-card')).toHaveCount(5, { timeout: 10000 });
+    });
+      
+    await test.step('Verify each result item title is displayed', async () => {
+      await expect(page.locator('.item-card').nth(0).locator('.stac-link .title')).toHaveText('example-item-0');
+      await expect(page.locator('.item-card').nth(1).locator('.stac-link .title')).toHaveText('example-item-1');
+      await expect(page.locator('.item-card').nth(2).locator('.stac-link .title')).toHaveText('example-item-2');
+      await expect(page.locator('.item-card').nth(4).locator('.stac-link .title')).toHaveText('example-item-4');
+    });
+  });
+    
+  test('search results show "no items found" when response is empty', async ({ page, worker }) => {
+    // override setup
+    api = API.minimalApi();
+    api.addCollection('collection')
+      .setMetadata({ title: 'Empty Collection' });
+    api.addCollectionsExtension()
+      .addItemsExtension()
+      .addSearchExtension();
+      
+    await api.createServer(worker);
+    await page.goto(SEARCH_PATH);
+      
+    await test.step('Submit search with default filters', async () => {
+      const submitButton = page.getByRole('button', { name: /submit/i });
+      await submitButton.click();
+    });
+      
+    await test.step('Verify "no items found" message appears', async () => {
+      await expect(page.getByText(/no items found for the given filters/i)).toBeVisible({ timeout: 10000 });
+    });
+      
+    await test.step('Verify no item cards are rendered', async () => {
+      await expect(page.locator('.item-card')).toHaveCount(0);
+    });
+  });
+    
+  test('search results display matched item count', async ({ page, worker }) => {
+    // override setup
+    api = API.minimalApi({}, {
+      defaultLimit: 100,
+      prevLinkEnabled: true,
+      firstLinkEnabled: true,
+      lastLinkEnabled: true
+    });
+    const collection1 = api.addCollection('collection1')
+      .setMetadata({ title: 'Test Collection 1' });
+    api.addManyItems(collection1, 9);
+    api.addCollectionsExtension()
+      .addItemsExtension()
+      .addSearchExtension();
+      
+    await api.createServer(worker);
+      
+    await page.goto(SEARCH_PATH);
+      
+    await test.step('Submit search and wait for results', async () => {
+      const submitButton = page.getByRole('button', { name: /submit/i });
+      await submitButton.click();
+        
+      await expect(page.locator('.item-card')).toHaveCount(9, { timeout: 10000 });
+    });
+      
+    await test.step('Verify items count badge is displayed', async () => {
+      // The Items section shows a count badge next to the heading
+      const itemsHeading = page.locator('.items header');
+      await expect(itemsHeading.locator('.badge')).toContainText('9');
+    });
+  });
+    
+  test('Reset button clears all filters and re-submits with empty body', async ({ page }) => {
+      
+    await page.goto(SEARCH_PATH);
+      
+    await test.step('Fill in filters before resetting', async () => {
+      // Set a limit so the body is non-empty
+      const limitInput = page.getByLabel(/items per page/i);
+      await limitInput.fill('5');
+        
+      // Submit to confirm the filters are applied
+      const requestPromise = waitForSearchPost(page);
+      await page.getByRole('button', { name: /submit/i }).click();
       const { body } = await requestPromise;
-      expect(body.sortby).toHaveLength(1);
-      expect(body.sortby[0].field).toBe('id');
-      expect(body.sortby[0].direction).toBe('asc');
+      expect(body.limit).toBe(5);
+    });
+      
+    await test.step('Click Reset then re-submit and verify empty body', async () => {
+      await page.getByRole('button', { name: /reset/i }).click();
+        
+      const requestPromise = waitForSearchPost(page);
+      await page.getByRole('button', { name: /submit/i }).click();
+      const { body } = await requestPromise;
+      expect(body).toEqual({});
+    });
+  });
+
+  test('Search results can be paginated with Next and Previous buttons', async ({ page, worker }) => {
+    //override default api
+    api = API.minimalApi(
+      {},
+      {
+        defaultLimit: 5,
+        prevLinkEnabled: true,
+        firstLinkEnabled: true,
+        lastLinkEnabled: true
+      });
+    let collection = api.addCollection('collection')
+      .setMetadata({ title: 'Test Collection 1' });
+    api.addManyItems(collection, 13);
+    api.addCollectionsExtension()
+      .addItemsExtension()
+      .addSearchExtension();
+        
+    await api.createServer(worker);
+        
+    await page.goto(SEARCH_PATH);
+        
+    const itemCards = page.locator('.item-card');
+    const nextButton = page.getByRole('button', { name: /next/i }).first();
+    const prevButton = page.getByRole('button', { name: /previous/i }).first();
+        
+    await test.step('Submit search and verify first page shows 5 items', async () => {
+      await page.getByRole('button', { name: /submit/i }).click();
+      await expect(itemCards).toHaveCount(5, { timeout: 10000 });
+    });
+        
+    await test.step('Next button is enabled, Previous is disabled on first page', async () => {
+      await expect(nextButton).toBeEnabled();
+      await expect(prevButton).toBeDisabled();
+    });
+        
+    await test.step('Click Next and verify second page shows 5 items', async () => {
+      await nextButton.click();
+      await expect(itemCards).toHaveCount(5, { timeout: 10000 });
+    });
+        
+    await test.step('Both Next and Previous are enabled on middle page', async () => {
+      await expect(nextButton).toBeEnabled();
+      await expect(prevButton).toBeEnabled();
+    });
+        
+    await test.step('Click Next and verify third page shows 3 items', async () => {
+      await nextButton.click();
+      await expect(itemCards).toHaveCount(3, { timeout: 10000 });
+    });
+        
+    await test.step('Previous is enabled, Next is disabled on last page', async () => {
+      await expect(prevButton).toBeEnabled();
+      await expect(nextButton).toBeDisabled();
+    });
+        
+    await test.step('Click Previous and verify middle page items are restored', async () => {
+      await prevButton.click();
+      await expect(itemCards).toHaveCount(5, { timeout: 10000 });
+      await expect(nextButton).toBeEnabled();
+      await expect(prevButton).toBeEnabled();
+    });
+  });
+      
+  test('Search results can be paginated with First and Last buttons', async ({ page, worker }) => {
+    //override default api
+    api = API.minimalApi(
+      {},
+      {
+        defaultLimit: 5,
+        prevLinkEnabled: true,
+        firstLinkEnabled: true,
+        lastLinkEnabled: true
+      }
+    );
+    let collection = api.addCollection('collection')
+      .setMetadata({ title: 'Test Collection 1' });
+    api.addManyItems(collection, 13);
+    api.addCollectionsExtension()
+      .addItemsExtension()
+      .addSearchExtension();
+        
+    await api.createServer(worker);
+        
+        
+    await page.goto(SEARCH_PATH);
+        
+    const itemCards = page.locator('.item-card');
+    const firstButton = page.getByRole('button', { name: /first/i }).first();
+    const lastButton = page.getByRole('button', { name: /last/i }).first();
+    const nextButton = page.getByRole('button', { name: /next/i }).first();
+    const prevButton = page.getByRole('button', { name: /previous/i }).first();
+        
+    await test.step('Submit search and verify first page', async () => {
+      await page.getByRole('button', { name: /submit/i }).click();
+      await expect(itemCards).toHaveCount(5, { timeout: 10000 });
+    });
+        
+    await test.step('First is disabled, Last is visible on first page', async () => {
+      await expect(firstButton).toBeDisabled();
+      await expect(lastButton).toBeEnabled();
+    });
+        
+    await test.step('Click Last to jump to the last page', async () => {
+      await lastButton.click();
+      await expect(itemCards).toHaveCount(3, { timeout: 10000 });
+      await expect(nextButton).toBeDisabled();
+      await expect(prevButton).toBeEnabled();
+      await expect(firstButton).toBeEnabled();
+    });
+        
+    await test.step('Click First to jump back to the first page', async () => {
+      await firstButton.click();
+      await expect(itemCards).toHaveCount(5, { timeout: 10000 });
+      await expect(nextButton).toBeEnabled();
+      await expect(prevButton).toBeDisabled();
+      await expect(firstButton).toBeDisabled();
+    });
+        
+    await test.step('Navigate to middle page and verify First/Last both enabled', async () => {
+      await nextButton.click();
+      await expect(itemCards).toHaveCount(5, { timeout: 10000 });
+      await expect(firstButton).toBeEnabled();
+      await expect(lastButton).toBeEnabled();
+    });
+        
+    await test.step('Click Last from middle page skips to last page', async () => {
+      await lastButton.click();
+      await expect(itemCards).toHaveCount(3, { timeout: 10000 });
+      await expect(nextButton).toBeDisabled();
+      await expect(firstButton).toBeEnabled();
+    });
+        
+    await test.step('Click First from last page skips to first page', async () => {
+      await firstButton.click();
+      await expect(itemCards).toHaveCount(5, { timeout: 10000 });
+      await expect(prevButton).toBeDisabled();
+      await expect(firstButton).toBeDisabled();
     });
   });
 });

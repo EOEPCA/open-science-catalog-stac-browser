@@ -27,6 +27,11 @@ export default [
   // Custom rules
   {
     rules: {
+      // Indentation
+      'indent': ['error', 2, { 'SwitchCase': 1 }],
+      'vue/html-indent': ['error', 2],
+      'vue/script-indent': ['error', 2, { 'baseIndent': 0, 'switchCase': 1 }],
+
       // General JavaScript rules
       'curly': [1, 'all'],
       'semi': [1, 'always'],
@@ -92,6 +97,7 @@ export default [
       '**/stac-fields/**',
       '**/stac-migrate/**',
       '**/stac-layer/**',
+      'src/codegen/templates/**',
       'config.js',
       '*.config.js',
       'dist/**',

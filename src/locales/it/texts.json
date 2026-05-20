@@ -70,7 +70,12 @@
     "false": "No",
     "true": "Si"
   },
+  "close": "Chiudi",
   "copy": "Copia",
+  "copyErrors": {
+    "permission": "Impossibile copiare. Controllare i permessi del browser.",
+    "unsupported": "Gli appunti non sono disponibili in questo browser."
+  },
   "default": "Predefinito",
   "defaultWithValue": "Predefinito ({value})",
   "deprecated": "Obsoleto",
@@ -111,6 +116,11 @@
     "serverError": "Il server ha riscontrato un problema. @:errors.contactProvider",
     "title": "Errore",
     "unauthorized": "La richiesta necessita di credenziali, ad esempio un token API. Inserisci i tuoi dati di accesso e riprova."
+  },
+  "exampleCode": {
+    "title": "Codice di esempio",
+    "storeAs": "Memorizza il codice come:",
+    "installDependencies": "Installare le dipendenze:"
   },
   "featureExperimental": "Questa funzione è ancora sperimentale e potrebbe dare risultati inaspettati!",
   "features": {
@@ -224,6 +234,14 @@
     "previous": "‹ Precedente"
   },
   "poweredBy": "Offerto da {link}",
+  "programming": {
+    "csharp": "C#",
+    "java": "Java",
+    "javascript": "JavaScript",
+    "python": "Python",
+    "r": "R",
+    "rust": "Rust"
+  },
   "protocol": {
     "azure": "Microsoft Azure",
     "file": "File system (locale)",
