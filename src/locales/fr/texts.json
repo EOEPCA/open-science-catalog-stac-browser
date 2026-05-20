@@ -41,12 +41,12 @@
     "password": "Mot de passe",
     "required": "Authentification requise",
     "schemeTypes": {
-      "http": "HTTP {scheme}",
-      "s3": "S3",
-      "signedUrl": "URL signée",
-      "oauth2": "OAuth 2",
       "apiKey": "Clé API",
-      "openIdConnect": "Connexion OpenID"
+      "http": "HTTP {scheme}",
+      "oauth2": "OAuth 2",
+      "openIdConnect": "Connexion OpenID",
+      "s3": "S3",
+      "signedUrl": "URL signée"
     },
     "title": "Authentification",
     "unauthorized": "Vous n'êtes pas autorisé à accéder à ces données. Veuillez vous connecter.",
@@ -71,6 +71,7 @@
     "true": "Oui"
   },
   "copy": "Copier",
+  "copyErrors": {},
   "default": "Défault",
   "defaultWithValue": "Défault ({value})",
   "deprecated": "Déprécié",
@@ -108,12 +109,21 @@
     "noExternalAccess": "L'accès aux catalogues externes n'est pas autorisé!",
     "notFound": "La ressource demandée n'existe pas. @:errors.contactProvider",
     "serverError": "Le serveur a rencontré un problème. @:errors.contactProvider",
+    "title": "Erreur",
     "unauthorized": "La requête requiert des informations d'authentification, comme par exemple un jeton API. Veuillez fournir vos informations d'authentification et réessayer"
   },
+  "exampleCode": {},
   "featureExperimental": "Cette fonctionnalité est encore expérimentale et peut donner des résultats inattendus!",
+  "features": {
+    "empty": "Aucune entité disponible.",
+    "noProperties": "Aucune propriété fournie.",
+    "title": "Entité | Entités"
+  },
   "fullscreen": {
     "exit": "Quitter le mode plein écran",
-    "show": "Voir en plein écran"
+    "exitLabel": "✕",
+    "show": "Voir en plein écran",
+    "showLabel": "⛶"
   },
   "goBack": {
     "description": "Revenir au {type}",
@@ -132,7 +142,7 @@
   "in": "dans {catalog}",
   "index": {
     "api": "API",
-    "catalog": "Catalogue",
+    "catalog": "Catalogue statique",
     "load": "Charger",
     "selectStacIndex": "... ou en sélectionner un dans {stacIndex}:",
     "specifyCatalog": "Veuillez spécifier un catalogue STAC ou un API...",
@@ -147,12 +157,32 @@
     "noneAvailableForCollection": "Aucun item disponible pour cette collection.",
     "showFilter": "Afficher les filtres"
   },
-  "leaflet": {
-    "close": "Fermer",
-    "noFeatureProperties": "Aucune donnée supplémentaire n'est disponible pour cette fonctionnalité.",
-    "stayLayer": {
-      "error": "Désolé, l'ajout des données à la carte a échoué."
+  "loading": "Chargement...",
+  "map": "Carte",
+  "mapping": {
+    "attribution": {
+      "collapseLabel": "✕",
+      "description": "Attributions",
+      "label": "i"
     },
+    "bboxSelect": {
+      "add": "Cliquez sur la carte pour ajouter une boîte englobante.",
+      "error": {},
+      "remove": "Cliquez à l'intérieur de la boîte englobante pour la supprimer."
+    },
+    "close": "Fermer",
+    "fit": "Adapter à l'étendue",
+    "layers": {
+      "base": "Couches de base",
+      "footprint": "Empreinte",
+      "title": "Couches",
+      "unnamed": "#{id} non nommé"
+    },
+    "location": {
+      "description": "Aller à votre position"
+    },
+    "nobasemap": "Aucune carte de base disponible.",
+    "nodata": "Aucune information spatiale disponible dans les métadonnées.",
     "zoom": {
       "in": {
         "description": "Zoom avant",
@@ -160,12 +190,10 @@
       },
       "out": {
         "description": "Zoom arrière",
-        "label": "-"
+        "label": "–"
       }
     }
   },
-  "loading": "Chargement...",
-  "map": "Carte",
   "messageForSchemaError": "{message}, pour le schéma {schemaPath}",
   "metadata": {
     "general": "Général",
@@ -187,6 +215,7 @@
     "previous": "‹ Précédent"
   },
   "poweredBy": "Propulsé par {link}",
+  "programming": {},
   "protocol": {
     "azure": "Microsoft Azure",
     "file": "Système de fichiers (local)",
@@ -217,9 +246,10 @@
   "search": {
     "addCollections": "Appuyer sur Entrée pour ajouter une Collection",
     "addFilter": "Ajouter un filtre",
+    "additionalFilters": "Filtres supplémentaires",
     "addItemIds": "Appuyer sur Entrée pour ajouter un ID Élément",
     "addSearchTerm": "Appuyez sur entrée pour ajouter un terme de recherche",
-    "additionalFilters": "Filtres supplémentaires",
+    "arrayInput": {},
     "dateDescription": "Toutes les heures sont en temps universel coordonné (UTC).",
     "enterCollections": "Saisissez une ou plusieurs collections...",
     "enterItemIds": "Saisissez un ou plusieurs identifiants d'éléments...",
@@ -253,11 +283,6 @@
     "placeholder": "Rechercher...",
     "selectCollections": "Sélectionnez une ou plusieurs collections...",
     "selectForItemSearch": "Sélectionner pour la recherche d'élément",
-    "sortOptions": {
-      "datetime": "Date et heure",
-      "id": "Identifiant",
-      "title": "Titre"
-    },
     "spatialExtent": "Étendue spatiale",
     "tabs": {
       "collections": "Rechercher des collections",
@@ -305,8 +330,8 @@
       "message": "{title} est disponible à l'adresse {url}",
       "sharePageWithOthers": "Partagez l'URL de cette page:",
       "title": "Partager",
-      "x": "X (Twitter)",
-      "withOthers": "Partagez cette page"
+      "withOthers": "Partagez cette page",
+      "x": "X (Twitter)"
     },
     "stacExtension": "Extension du STAC",
     "stacVersion": "Version STAC",

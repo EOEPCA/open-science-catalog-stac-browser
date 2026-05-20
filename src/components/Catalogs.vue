@@ -1,60 +1,64 @@
 <template>
   <section class="catalogs mb-4">
     <header>
-      <h2 class="title mr-2">{{ title }}</h2>
-      <b-badge v-if="catalogCount !== null" pill variant="secondary" class="mr-4">{{ catalogCount }}</b-badge>
-      <ViewButtons class="mr-2" v-model="view" />
-      <SortButtons v-if="isComplete && catalogs.length > 1" v-model="sort" />
+      <h2 class="title me-2">{{ title }}</h2>
+      <b-badge v-if="catalogCount !== null" pill variant="secondary" class="me-4">{{ catalogCount }}</b-badge>
+      <ViewButtons v-if="!hideControls" class="me-2" v-model="view" />
+      <SortButtons v-if="!hideControls && isComplete && catalogs.length > 1" v-model="sort" />
     </header>
-    <section v-if="isComplete && catalogs.length > 1" class="catalog-filter mb-2">
+    <section v-if="!hideControls && isComplete && catalogs.length > 1" class="catalog-filter mb-2">
       <SearchBox v-model="searchTerm" :placeholder="filterPlaceholder" />
       <multiselect
-        v-if="allKeywords.length > 0" v-model="selectedKeywords" multiple :options="allKeywords"
+        v-if="allKeywords.length > 0"
+        v-model="selectedKeywords"
+        :options="allKeywords"
+        multiple
         :placeholder="$t('multiselect.keywordsPlaceholder')"
-        :selectLabel="$t('multiselect.selectLabel')"
-        :selectedLabel="$t('multiselect.selectedLabel')"
-        :deselectLabel="$t('multiselect.deselectLabel')"
-        :limitText="limitText"
+        :select-label="$t('multiselect.selectLabel')"
+        :selected-label="$t('multiselect.selectedLabel')"
+        :deselect-label="$t('multiselect.deselectLabel')"
+        :limit-text="limitText"
       />
     </section>
     <Pagination v-if="showPagination" ref="topPagination" class="mb-3" :pagination="pagination" placement="top" @paginate="paginate" />
     <b-alert v-if="hasSearchCritera && catalogView.length === 0" variant="warning" class="mt-2" show>{{ $t('catalogs.noMatches') }}</b-alert>
     <section class="list">
       <Loading v-if="loading" fill top />
-      <component :is="cardsComponent" v-bind="cardsComponentProps">
+      <div :class="view === 'list' ? 'card-list' : 'card-grid'">
         <Catalog v-for="catalog in catalogView" :catalog="catalog" :key="catalog.href">
           <template #footer="{data}">
             <slot name="catalogFooter" :data="data" />
           </template>
         </Catalog>
-      </component>
+      </div>
     </section>
     <Pagination v-if="showPagination" class="mb-3" :pagination="pagination" @paginate="paginate" />
-    <b-button v-else-if="hasMore" @click="loadMore" variant="primary" v-b-visible.300="loadMore">{{ $t('catalogs.loadMore') }}</b-button>
+    <b-button v-else-if="hasMore" @click="loadMore" variant="primary" v-visible.300="loadMore">{{ $t('catalogs.loadMore') }}</b-button>
   </section>
 </template>
 
 <script>
 import { mapGetters, mapState } from 'vuex';
+import { defineComponent, defineAsyncComponent } from 'vue';
+
 import Catalog from './Catalog.vue';
 import Loading from './Loading.vue';
-import STAC from '../models/stac';
-import ViewMixin from './ViewMixin';
+import { getDisplayTitle } from '../models/stac';
+import { STAC } from 'stac-js';
+import ViewButtons from './ViewButtons.vue';
 import Utils from '../utils';
 
-export default {
+export default defineComponent({
   name: "Catalogs",
   components: {
     Catalog,
     Loading,
-    Pagination: () => import('./Pagination.vue'),
-    SearchBox: () => import('./SearchBox.vue'),
-    SortButtons: () => import('./SortButtons.vue'),
-    Multiselect: () => import('vue-multiselect')
+    Multiselect: defineAsyncComponent(() => import('vue-multiselect')),
+    Pagination: defineAsyncComponent(() => import('./Pagination.vue')),
+    SearchBox: defineAsyncComponent(() => import('./SearchBox.vue')),
+    SortButtons: defineAsyncComponent(() => import('./SortButtons.vue')),
+    ViewButtons
   },
-  mixins: [
-    ViewMixin
-  ],
   props: {
     catalogs: {
       type: Array,
@@ -64,6 +68,14 @@ export default {
       type: Boolean,
       required: false
     },
+    enforceCards: {
+      type: Boolean,
+      default: false
+    },
+    hideControls: {
+      type: Boolean,
+      default: false
+    },
     loading: {
       type: Boolean,
       default: false
@@ -71,6 +83,10 @@ export default {
     hasMore: {
       type: Boolean,
       default: false
+    },
+    apiFilters: {
+      type: Object,
+      default: () => ({})
     },
     pagination: {
       type: Object,
@@ -81,6 +97,7 @@ export default {
       default: null
     }
   },
+  emits: ['loadMore', 'paginate'],
   data() {
     return {
       searchTerm: '',
@@ -105,10 +122,10 @@ export default {
     },
     title() {
       if (this.collectionsOnly) {
-        return this.$tc('stacCollection', this.catalogs.length );
+        return this.$t('stacCollection', this.catalogs.length );
       }
       else {
-        return this.$tc('stacCatalog', this.catalogs.length );
+        return this.$t('stacCatalog', this.catalogs.length );
       }
     },
     isComplete() {
@@ -123,8 +140,8 @@ export default {
     },
     allCatalogs() {
       return this.catalogs.map(catalog => {
-          let stac = this.getStac(catalog);
-          return stac ? stac : catalog;
+        let stac = this.getStac(catalog);
+        return stac ? stac : catalog;
       });
     },
     hasSearchCritera() {
@@ -158,9 +175,9 @@ export default {
         });
       }
       // Sort
-      if (!this.hasMore && this.sort !== 0) {
+      if (!this.hasMore && !this.apiFilters.sortby && this.sort !== 0) {
         const collator = new Intl.Collator(this.uiLanguage);
-        catalogs = catalogs.slice(0).sort((a,b) => collator.compare(STAC.getDisplayTitle(a), STAC.getDisplayTitle(b)));
+        catalogs = catalogs.slice(0).sort((a,b) => collator.compare(getDisplayTitle(a), getDisplayTitle(b)));
         if (this.sort === -1) {
           catalogs = catalogs.reverse();
         }
@@ -182,10 +199,24 @@ export default {
         }
       }
       return keywords.sort();
+    },
+    view: {
+      get() {
+        if (this.enforceCards) {
+          return 'cards';
+        }
+        return this.$store.state.cardViewMode;
+      },
+      async set(cardViewMode) {
+        if (this.enforceCards) {
+          return;
+        }
+        await this.$store.dispatch('config', { cardViewMode });
+      }
     }
   },
   created() {
-    this.sort = this.cardViewSort;
+    this.sort = Utils.convertHumanizedSortOrder(this.cardViewSort);
   },
   methods: {
     loadMore(visible = true) {
@@ -206,7 +237,7 @@ export default {
       return this.$t("multiselect.andMore", {count});
     }
   }
-};
+});
 </script>
 
 <style lang="scss" scoped>

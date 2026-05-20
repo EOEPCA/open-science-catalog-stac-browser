@@ -1,29 +1,23 @@
 <template>
   <div>
     <ul>
-      <li v-for="topic in topicData.topics">
+      <li v-for="topic in topicData.topics" :key="topic.id">
         <a
           :href="`${discourseRoot}/t/${topic.slug}`"
           target="_blank"
         >
           <span class="title">{{ topic.unicode_title || topic.title }}</span>
           <span class="excerpt">{{
-            topic.excerpt?.replace("&hellip\;", " ...")
+            topic.excerpt?.replace("&hellip;", " ...")
           }}</span>
           <span class="date">{{
             new Date(topic.bumped_at).toLocaleDateString()
           }}</span>
           <span class="posts">
             <img
-              v-for="avatar in new Set([
-                ...topicData.posts
-                  .filter((p) => p.topic_id === topic.id)
-                  .map((p) => p.avatar_template),
-              ])"
-              :src="`${discourseRoot}${avatar.replace(
-                '{size}',
-                '28'
-              )}`"
+              v-for="(avatar, idx) in uniqueAvatars(topic.id)"
+              :key="idx"
+              :src="`${discourseRoot}${avatar.replace('{size}', '28')}`"
             />
             {{ topicData.posts.filter((p) => p.topic_id === topic.id).length }}
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -57,28 +51,38 @@
 </template>
 
 <script>
+import { defineComponent } from 'vue';
 import { discourseRoot } from "../custom";
 
-export default {
-  data: () => ({
-    discourseRoot,
-  }),
+export default defineComponent({
+  data() {
+    return {
+      discourseRoot,
+    };
+  },
   props: {
     stacData: {
       type: Object,
-      default: {},
+      default: () => ({}),
     },
     topicData: {
       type: Object,
-      default: {},
+      default: () => ({}),
     },
   },
   methods: {
     capitalize(s) {
       return String(s[0]).toUpperCase() + String(s).slice(1);
     },
+    uniqueAvatars(topicId) {
+      return [...new Set(
+        this.topicData.posts
+          .filter((p) => p.topic_id === topicId)
+          .map((p) => p.avatar_template)
+      )];
+    },
   },
-};
+});
 </script>
 
 <style scoped>

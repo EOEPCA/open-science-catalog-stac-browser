@@ -1,5 +1,5 @@
 <template>
-  <ul class="tree" v-b-visible="load">
+  <ul class="tree" v-visible="load">
     <li>
       <b-button v-if="pagination" size="sm" variant="light" disabled>
         <b-icon-three-dots />
@@ -12,9 +12,9 @@
       </template>
       <b-button v-else size="sm" variant="light" :to="to">
         <b-icon-file-earmark-richtext />
-      </b-button>
+      </b-button><!--
       
-      <b-button size="sm" variant="light" :class="{path: onPath || active}" :disabled="!to && !active" :to="to" @click="onClick">
+      --><b-button size="sm" variant="light" :class="{path: onPath || active}" :disabled="!to && !active" :to="to" @click="onClick">
         {{ title }}
       </b-button>
 
@@ -31,7 +31,7 @@
         </ul>
         <template v-else>
           <Tree v-for="(child, i) in shownChilds" :key="i" :item="child" :parent="stac" :path="path" />
-          <b-button class="show-more" v-if="hasMore" variant="light" @click="showMore" v-b-visible.300="showMore">{{ $t('showMore') }}</b-button>
+          <b-button class="show-more" v-if="hasMore" variant="light" @click="showMore" v-visible.300="showMore">{{ $t('showMore') }}</b-button>
         </template>
       </template>
     </li>
@@ -39,19 +39,14 @@
 </template>
 
 <script>
-import { BIconFileEarmarkRichtext, BIconFolderMinus, BIconFolderPlus, BIconThreeDots } from "bootstrap-vue";
 import { mapGetters, mapState } from 'vuex';
-import Utils from '../utils';
-import STAC from '../models/stac';
+import { isObject } from 'stac-js/src/utils.js';
+import { toAbsolute } from 'stac-js/src/http.js';
+import { getDisplayTitle, Collection } from '../models/stac';
+import { STAC } from 'stac-js';
 
 export default {
   name: 'Tree',
-  components: {
-    BIconFileEarmarkRichtext,
-    BIconFolderMinus,
-    BIconFolderPlus,
-    BIconThreeDots
-  },
   props: {
     item: {
       type: Object,
@@ -109,9 +104,9 @@ export default {
           return null;
         }
       }
-      else if (Utils.isObject(this.item) && typeof this.item.href === 'string') {
+      else if (isObject(this.item) && typeof this.item.href === 'string') {
         if (this.parent) {
-          return Utils.toAbsolute(this.item.href, this.parent.getAbsoluteUrl());
+          return toAbsolute(this.item.href, this.parent.getAbsoluteUrl());
         }
         else {
           return this.item.href;
@@ -121,7 +116,7 @@ export default {
     },
     mayHaveChildren() {
       if (this.item instanceof STAC) {
-        return this.item.isCatalogLike();
+        return this.item.isCatalogLike;
       }
       else if (this.link) {
         return this.item.rel !== 'item';
@@ -149,7 +144,7 @@ export default {
       if (this.pagination) {
         return this.$t('tree.moreCollectionPagesAvailable');
       }
-      return STAC.getDisplayTitle([this.item, this.stac]);
+      return getDisplayTitle([this.item, this.stac]);
     },
     hasMore() {
       return this.childs.length > this.shownChilds.length;
@@ -182,10 +177,10 @@ export default {
     stac: {
       immediate: true,
       handler(newStac, oldStac) {
-        if (newStac instanceof STAC) {
+        if (newStac instanceof Collection) {
           newStac.setApiDataListener('tree', () => this.updateChilds());
         }
-        if (oldStac instanceof STAC) {
+        if (oldStac instanceof Collection) {
           oldStac.setApiDataListener('tree');
         }
         this.updateChilds();
@@ -199,7 +194,7 @@ export default {
   },
   methods: {
     updateChilds() {
-      if (this.stac instanceof STAC) {
+      if (this.stac && this.stac.isCatalogLike) {
         this.childs = this.stac.getChildren(this.apiCatalogPriority);
       }
       else {
@@ -219,7 +214,7 @@ export default {
       if (this.expanded && !this.pagination) {
         this.loading = true;
         let url = this.item instanceof STAC ? this.item.getAbsoluteUrl() : this.item.href;
-        await this.$store.dispatch("load", { url });
+        await this.$store.dispatch('load', { url });
         this.loading = false;
       }
     }
@@ -232,6 +227,10 @@ export default {
   list-style-type: none;
   margin: 0;
   padding: 0;
+
+  :deep(.btn.disabled) {
+    filter: none !important;
+  }
 
   > li {
     white-space: nowrap;

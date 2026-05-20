@@ -1,9 +1,9 @@
 <template>
   <b-card no-body>
     <b-card-header>
-      <component :is="titleComponent" class="name mr-1" :title="id">{{ name }}</component>
-      <b-badge v-if="version" variant="primary ml-1">{{ version }}</b-badge>
-      <b-badge v-if="!isCore" variant="dark ml-1">{{ $t('source.extension') }}</b-badge>
+      <component :is="titleComponent" class="name me-1" :title="id">{{ name }}</component>
+      <b-badge v-if="version" variant="primary ms-1">{{ version }}</b-badge>
+      <b-badge v-if="!isCore" variant="dark ms-1">{{ $t('source.extension') }}</b-badge>
     </b-card-header>
     <b-list-group flush>
       <template v-if="errors.length > 0">
@@ -24,17 +24,17 @@
 </template>
 
 <script>
-import { BListGroup, BListGroupItem } from 'bootstrap-vue';
-import URI from 'urijs';
-import Utils from '../utils';
+import { URI } from 'stac-js/src/utils.js';
+import { isObject } from 'stac-js/src/utils.js';
+import { BCard, BCardHeader } from 'bootstrap-vue-next';
 
 const VERSION_REGEXP = /\/(v?\d+\.\d+[^/]+)(\/|$)/;
 
 export default {
   name: "ValidationResult",
   components: {
-    BListGroup,
-    BListGroupItem
+    BCard,
+    BCardHeader
   },
   props: {
     id: {
@@ -66,8 +66,18 @@ export default {
       if (typeof this.locale !== 'function') {
         return this.errors;
       }
-      this.locale(this.errors);
-      return this.errors;
+      // Make a copy of the errors as the ajv-i18n package mutates the error objects
+      const errors = this.errors.map(error => Object.assign({}, error));
+      // Translate error messages
+      this.locale(errors);
+      // ajv-i18n overrides error messages from stac-node-validator that do not originate from ajv.
+      // Reset to the original message in those cases.
+      return errors.map((error, i) => {
+        if (typeof error.keyword === 'undefined') {
+          return this.errors[i];
+        }
+        return error;
+      });
     },
     hasWarnings() {
       return Array.isArray(this.warnings) && this.warnings.length > 0;
@@ -78,11 +88,11 @@ export default {
     type() {
       switch(this.context.type) {
         case "Feature":
-          return this.$tc('stacItem');
+          return this.$t('stacItem', 1);
         case "Catalog":
-          return this.$tc(`stacCatalog`);
+          return this.$t(`stacCatalog`, 1);
         case "Collection":
-          return this.$tc(`stacCollection`);
+          return this.$t(`stacCollection`, 1);
         default:
           return this.context.type;
       }
@@ -119,7 +129,7 @@ export default {
   methods: {
     makeAjvErrorMessage(error) {
       let message = error.message;
-      if (Utils.isObject(error.params) && Object.keys(error.params).length > 0) {
+      if (isObject(error.params) && Object.keys(error.params).length > 0) {
         let params = Object.entries(error.params)
           .map(([key, value]) => {
             let localizedLabel;

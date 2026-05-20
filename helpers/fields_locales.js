@@ -1,6 +1,6 @@
-const Fields = require('@radiantearth/stac-fields/fields-normalized.json');
-const HardCodedFields = require("./fields_locales.json");
-const fs = require('fs');
+import Fields from '@radiantearth/stac-fields/fields-normalized.json' with { type: 'json' };
+import HardCodedFields from './fields_locales.json' with { type: 'json' };
+import fs from 'fs';
 
 const translatable = ["label", "explain", "unit"];
 const iterable = ["items", "properties"];
@@ -57,7 +57,7 @@ function writeToFile(file, locales) {
   const data = {};
   Object.keys(locales).sort().forEach(key => data[key] = key);
   const json = JSON.stringify(data, null, 2);
-  fs.writeFileSync(file, json);
+  fs.writeFileSync(file, json + "\n");
 }
 
 function generateLocales() {

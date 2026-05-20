@@ -3,15 +3,15 @@
     <h3>{{ title }}</h3>
     <Description :description="message" inline />
     <ul v-if="latestLink || successorLink || predecessorLink">
-      <li v-if="latestLink">
+      <li v-if="latestLink" class="latest">
         {{ $t('deprecation.latestVersion') }}
         <StacLink :data="latestLink" :fallbackTitle="$t('deprecation.fallbackTitle')" />
       </li>
-      <li v-if="successorLink">
+      <li v-if="successorLink" class="successor">
         {{ $t('deprecation.successorVersion') }}
         <StacLink :data="successorLink" :fallbackTitle="$t('deprecation.fallbackTitle')" />
       </li>
-      <li v-if="predecessorLink">
+      <li v-if="predecessorLink" class="predecessor">
         {{ $t('deprecation.predecessorVersion') }}
         <StacLink :data="predecessorLink" :fallbackTitle="$t('deprecation.fallbackTitle')" />
       </li>
@@ -20,14 +20,19 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from 'vue';
 import Description from './Description.vue';
+import DeprecationMixin from './DeprecationMixin';
 
 export default {
   name: 'DeprecationNotice',
   components: {
-    StacLink: () => import('./StacLink.vue'),
+    StacLink: defineAsyncComponent(() => import('./StacLink.vue')),
     Description
   },
+  mixins: [
+    DeprecationMixin
+  ],
   props: {
     data: {
       type: Object,
@@ -45,21 +50,8 @@ export default {
         return this.$t('deprecation.otherVersionsNotice', vars);
       }
     },
-    latestLink() {
-      return this.data.getStacLinkWithRel('latest-version');
-    },
-    successorLink() {
-      return this.data.getStacLinkWithRel('successor-version');
-    },
-    predecessorLink() {
-      // Show prev. link only if not deprecated
-      return !this.isDeprecated && this.data.getStacLinkWithRel('predecessor-version');
-    },
     variant() {
       return this.isDeprecated ? 'warning' : 'info';
-    },
-    isDeprecated() {
-      return Boolean(this.data.isItem() ? this.data.properties.deprecated : this.data.deprecated);
     },
     title() {
       if (this.isDeprecated) {
@@ -73,14 +65,14 @@ export default {
       }
     },
     type() {
-      if (this.data.isItem()) {
-        return this.$tc('stacItem');
+      if (this.data.isItem) {
+        return this.$t('stacItem', 1);
       }
-      else if (this.data.isCollection()) {
-        return this.$tc(`stacCollection`);
+      else if (this.data.isCollection) {
+        return this.$t(`stacCollection`, 1);
       }
-      else if (this.data.isCatalog()) {
-        return this.$tc(`stacCatalog`);
+      else if (this.data.isCatalog) {
+        return this.$t(`stacCatalog`, 1);
       }
       else {
         return '';
@@ -94,7 +86,7 @@ export default {
 .deprecation {
   h3 {
     font-size: 1em;
-    font-weight: bold;
+    font-weight: 700;
     display: inline-block;
     margin: 0;
     margin-right: 1em;
@@ -102,6 +94,17 @@ export default {
   ul {
     margin-top: 0.5em;
     margin-bottom: 0;
+  }
+  li {
+    &.latest {
+      font-weight: 600;
+    }
+    &.successor {
+      font-weight: 500;
+    }
+    &.predecessor {
+      font-weight: 500;
+    }
   }
 }
 </style>

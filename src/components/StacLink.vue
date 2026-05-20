@@ -1,20 +1,22 @@
 <template>
-  <component :is="component" class="stac-link" v-bind="attributes" :title="tooltip">
-    <template v-if="icon">
-      <img :src="icon.href" :alt="icon.title" :title="icon.title" class="icon mr-2">
-    </template>
+  <component :is="component" class="stac-link" :id="id" :title="tooltip" v-bind="attributes">
+    <img v-if="icon && !hideIcon" :src="icon.getAbsoluteUrl()" :alt="icon.title" :title="icon.title" class="icon me-2">
     <span class="title">{{ displayTitle }}</span>
   </component>
 </template>
 
 <script>
+import { defineComponent } from 'vue';
 import { mapState, mapGetters } from 'vuex';
+import { BButton } from 'bootstrap-vue-next';
 import { stacBrowserNavigatesTo } from "../rels";
-import Utils from '../utils';
-import STAC from '../models/stac';
-import URI from 'urijs';
+import { isObject, size } from 'stac-js/src/utils.js';
+import { isStacMediaType } from 'stac-js/src/mediatypes.js';
+import { getDisplayTitle } from '../models/stac';
+import { STAC } from 'stac-js';
+import { URI } from 'stac-js/src/utils.js';
 
-export default {
+export default defineComponent({
   name: "StacLink",
   props: {
     data: {
@@ -27,7 +29,7 @@ export default {
     },
     fallbackTitle: {
       type: [String, Function],
-      default: null
+      default: ""
     },
     tooltip: {
       type: String,
@@ -40,14 +42,22 @@ export default {
     state: {
       type: Object,
       default: null
+    },
+    hideIcon: {
+      type: Boolean,
+      default: false
+    },
+    id: {
+      type: String,
+      default: null
     }
   },
   computed: {
     ...mapState(['allowExternalAccess', 'privateQueryParameters']),
     ...mapGetters(['toBrowserPath', 'getRequestUrl', 'isExternalUrl']),
     icon() {
-      if (this.stac) {
-        let icons = this.stac.getIcons();
+      if (this.stac instanceof STAC) {
+        const icons = this.stac.getIcons();
         if (icons.length > 0) {
           return icons[0];
         }
@@ -80,7 +90,7 @@ export default {
       if (this.stac) {
         return true;
       }
-      if (!Utils.isStacMediaType(this.link.type, true)) {
+      if (!isStacMediaType(this.link.type, true)) {
         return false;
       }
       if (!this.allowExternalAccess && this.isExternalUrl(this.link.href)) {
@@ -92,42 +102,48 @@ export default {
       if (this.isStacBrowserLink || this.button) {
         let obj = {
           to: this.href,
-          rel: this.rel
+          rel: this.link.rel
         };
-        if (Utils.isObject(this.button)) {
+        if (isObject(this.button)) {
           Object.assign(obj, this.button);
         }
         return obj;
       }
       else {
-        return {
+        const obj = {
           href: this.href,
           target: '_blank',
-          rel: this.rel
+          rel: this.link.rel,
         };
+        if (this.id) {
+          // Add tab index when an ID is given for popovers to make it clickable on MacOS (#655)
+          obj.tabindex = 0;
+        }
+        return obj;
       }
     },
     component() {
       if (this.button) {
-        return 'b-button';
+        return BButton;
       }
       return this.isStacBrowserLink ? 'router-link' : 'a';
     },
     href() {
       if (this.stac || this.isStacBrowserLink) {
         let href;
-        if (this.stac) {
+        if (this.stac instanceof STAC) {
           href = this.stac.getBrowserPath();
         }
         else {
           href = this.toBrowserPath(this.link.href);
         }
+        // Normalize to start with a slash for router-link navigation
         if (!href.startsWith('/')) {
-          href = '/' + href;
+          href = '/' + (href || '');
         }
 
         // Add private query parameters to links: https://github.com/radiantearth/stac-browser/issues/142
-        if (Utils.size(this.privateQueryParameters) > 0 || Utils.size(this.state) > 0) {
+        if (size(this.privateQueryParameters) > 0 || size(this.state) > 0) {
           let uri = URI(href);
           let addParameters = (obj, prefix) => {
             for(let key in obj) {
@@ -155,13 +171,13 @@ export default {
       }
 
       let fallback = typeof this.fallbackTitle === 'function' ? this.fallbackTitle() : this.fallbackTitle;
-      return STAC.getDisplayTitle(this.data, fallback);
+      return getDisplayTitle(this.data, fallback);
     }
   },
   methods: {
     isLink(o) {
-      return Utils.isObject(o) && !(o instanceof STAC);
+      return isObject(o) && !(o instanceof STAC);
     }
   }
-};
+});
 </script>

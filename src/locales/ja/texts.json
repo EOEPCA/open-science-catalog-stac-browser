@@ -53,6 +53,7 @@
     "true": "はい"
   },
   "copy": "コピー",
+  "copyErrors": {},
   "default": "デフォルト",
   "defaultWithValue": "デフォルト ({value})",
   "deprecated": "非推奨",
@@ -91,10 +92,14 @@
     "serverError": "サーバーに問題が発生しました。@:errors.contactProvider",
     "unauthorized": "リクエストには認証情報がありません（例:APIトークン。）認証情報を入力して再度お試し下さい。"
   },
+  "exampleCode": {},
   "featureExperimental": "この機能はまだ実験的で、予期しない結果をもたらす可能性があります。",
+  "features": {},
   "fullscreen": {
     "exit": "全画面表示を終了",
-    "show": "全画面表示"
+    "exitLabel": "✕",
+    "show": "全画面表示",
+    "showLabel": "⛶"
   },
   "goBack": {
     "description": "{type} に戻る",
@@ -127,12 +132,16 @@
     "noneAvailableForCollection": "このコレクションに利用可能なアイテムはありません。",
     "showFilter": "フィルターを表示"
   },
-  "leaflet": {
-    "close": "閉じる",
-    "noFeatureProperties": "この機能には追加のデータはありません。",
-    "stayLayer": {
-      "error": "マップへのデータの追加に失敗しました。"
+  "loading": "読み込み中...",
+  "map": "マップ",
+  "mapping": {
+    "attribution": {},
+    "bboxSelect": {
+      "error": {}
     },
+    "close": "閉じる",
+    "layers": {},
+    "location": {},
     "zoom": {
       "in": {
         "description": "拡大",
@@ -140,12 +149,10 @@
       },
       "out": {
         "description": "縮小",
-        "label": "-"
+        "label": "–"
       }
     }
   },
-  "loading": "読み込み中...",
-  "map": "マップ",
   "messageForSchemaError": "{message}, スキーマ {schemaPath}",
   "metadata": {
     "general": "一般",
@@ -167,6 +174,7 @@
     "previous": "‹ 前"
   },
   "poweredBy": "提供: {link}",
+  "programming": {},
   "protocol": {
     "azure": "Microsoft Azure",
     "file": "ファイルシステム (ローカル)",
@@ -197,9 +205,10 @@
   "search": {
     "addCollections": "Enterキーを押してコレクションを追加",
     "addFilter": "フィルターを追加",
+    "additionalFilters": "追加のフィルター",
     "addItemIds": "Enterキーを押してアイテムIDを追加",
     "addSearchTerm": "Enter キーを押して検索語句を追加",
-    "additionalFilters": "追加のフィルター",
+    "arrayInput": {},
     "dateDescription": "すべての時刻はUTC (協定世界時) です",
     "enterCollections": "1つ以上のコレクションIDを入力してください...",
     "enterItemIds": "1つ以上のアイテムIDを入力してください...",
@@ -232,11 +241,6 @@
     "placeholder": "検索...",
     "selectCollections": "1つ以上のコレクションを選択...",
     "selectForItemSearch": "アイテム検索用に選択",
-    "sortOptions": {
-      "datetime": "日付と時刻",
-      "id": "ID",
-      "title": "タイトル"
-    },
     "spatialExtent": "場所の範囲",
     "tabs": {
       "collections": "コレクションを検索",
@@ -283,8 +287,8 @@
       "message": "{title} はこちらのページで利用できます: {url}",
       "sharePageWithOthers": "このページのURLを共有しましょう:",
       "title": "共有",
-      "x": "X (Twitter)",
-      "withOthers": "このページを共有しましょう"
+      "withOthers": "このページを共有しましょう",
+      "x": "X (Twitter)"
     },
     "statistics": "統計",
     "title": "ソースデータ",

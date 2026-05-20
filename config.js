@@ -1,6 +1,7 @@
-module.exports = {
+export default {
     catalogUrl: null,
     catalogTitle: "Open Science Catalog",
+    catalogImage: null,
     allowExternalAccess: true, // Must be true if catalogUrl is not given
     allowedDomains: [],
     detectLocaleFromBrowser: false,
@@ -23,13 +24,17 @@ module.exports = {
         "ro",
         "ja",
         "pt",
-//      "pt-BR"
+//      "pt-BR",
+        "id",
+        "pl"
     ],
     apiCatalogPriority: null,
-    useTileLayerAsFallback: true,
+    useTileLayerAsFallback: false,
     displayGeoTiffByDefault: false,
-    buildTileUrlTemplate: ({href, asset}) => "https://tiles.rdnt.io/tiles/{z}/{x}/{y}@2x?url=" + encodeURIComponent(href),
-    stacProxyUrl: null,
+    displayPreview: true,
+    displayOverview: true,
+    buildTileUrlTemplate: null,
+    getMapSourceOptions: null,
     pathPrefix: "/stac-browser/",
     historyMode: "hash",
     cardViewMode: "list",
@@ -37,16 +42,15 @@ module.exports = {
     showKeywordsInItemCards: false,
     showKeywordsInCatalogCards: false,
     showThumbnailsAsAssets: false,
-    geoTiffResolution: 128,
-    redirectLegacyUrls: false,
-    itemsPerPage: 12,
-    maxItemsPerPage: 1000,
+    searchResultsPerPage: null,
+    itemsPerPage: null,
+    collectionsPerPage: null,
+    maxEntriesPerPage: 1000,
     defaultThumbnailSize: null,
-    maxPreviewsOnMap: 50,
     crossOriginMedia: null,
     requestHeaders: {},
     requestQueryParameters: {},
-    socialSharing: ['email', 'bsky', 'mastodon', 'x'],
+    socialSharing: [],
     preprocessSTAC: (stac) => {
         if(stac.type === "Feature") {
             stac.links = stac.links.map(link => {
@@ -67,5 +71,7 @@ module.exports = {
         }
         return stac;
     },
-    authConfig: null
+    authConfig: null,
+    crs: {},
+    footerLinks: null
 };

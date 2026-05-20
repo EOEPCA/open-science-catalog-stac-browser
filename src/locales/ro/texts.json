@@ -41,12 +41,12 @@
     "password": "Parola",
     "required": "Autentificare necesară",
     "schemeTypes": {
-      "http": "HTTP {scheme}",
-      "s3": "S3",
-      "signedUrl": "URL Semnat",
-      "oauth2": "OAuth 2",
       "apiKey": "Cheie API",
-      "openIdConnect": "OpenID Connect"
+      "http": "HTTP {scheme}",
+      "oauth2": "OAuth 2",
+      "openIdConnect": "OpenID Connect",
+      "s3": "S3",
+      "signedUrl": "URL Semnat"
     },
     "title": "Autentificare",
     "unauthorized": "Nu aveți permisiuni să accesați aceste date. Autentificare necesară.",
@@ -71,6 +71,7 @@
     "true": "Doar"
   },
   "copy": "Copiază",
+  "copyErrors": {},
   "default": "Implicit",
   "defaultWithValue": "Implicit ({value})",
   "deprecated": "Învechit",
@@ -108,12 +109,19 @@
     "noExternalAccess": "Accesul la cataloage externe nu este permis!",
     "notFound": "Resursa solicitată nu există. @:errors.contactProvider",
     "serverError": "Serverul a întâmpinat o problemă. @:errors.contactProvider",
+    "title": "Eroare",
     "unauthorized": "Solicitarea necesită informații de autentificare, cum ar fi un token API. Vă rugăm să furnizați acreditările și să încercați din nou"
   },
+  "exampleCode": {},
   "featureExperimental": "Această funcție este încă experimentală și poate da rezultate neașteptate!",
+  "features": {
+    "noProperties": "Nu au fost furnizate proprietăți."
+  },
   "fullscreen": {
     "exit": "Ieși din modul ecran complet",
-    "show": "Vizualizați pe tot ecranul"
+    "exitLabel": "✕",
+    "show": "Vizualizați pe tot ecranul",
+    "showLabel": "⛶"
   },
   "goBack": {
     "description": "Reveniți la {type}",
@@ -132,7 +140,7 @@
   "in": "în {catalog}",
   "index": {
     "api": "API",
-    "catalog": "Catalog",
+    "catalog": "Catalog Static",
     "load": "Încărcare",
     "selectStacIndex": "... sau selectați unul din {stacIndex}:",
     "specifyCatalog": "Vă rugăm să specificați un catalog STAC sau un API...",
@@ -147,12 +155,27 @@
     "noneAvailableForCollection": "Nu există articole disponibile pentru această colecție.",
     "showFilter": "Afișează filtre"
   },
-  "leaflet": {
-    "close": "Închidere",
-    "noFeatureProperties": "Nu sunt disponibile date suplimentare pentru această caracteristică.",
-    "stayLayer": {
-      "error": "Ne pare rău, adăugarea datelor pe hartă nu a reușit."
+  "loading": "Încărcare...",
+  "map": "Hartă",
+  "mapping": {
+    "attribution": {
+      "collapseLabel": "✕",
+      "label": "i"
     },
+    "bboxSelect": {
+      "error": {}
+    },
+    "close": "Închidere",
+    "layers": {
+      "base": "Straturi de bază",
+      "footprint": "Amprentă la sol",
+      "title": "Straturi",
+      "unnamed": "Fără nume #{id}"
+    },
+    "location": {
+      "description": "Mergi la locație"
+    },
+    "nodata": "Nu sunt informații spațiale disponibile în metadate.",
     "zoom": {
       "in": {
         "description": "Mărire",
@@ -160,12 +183,10 @@
       },
       "out": {
         "description": "Micșorare",
-        "label": "-"
+        "label": "–"
       }
     }
   },
-  "loading": "Încărcare...",
-  "map": "Hartă",
   "messageForSchemaError": "{message}, pentru schema {schemaPath}",
   "metadata": {
     "general": "General",
@@ -187,6 +208,7 @@
     "previous": "‹ Precedent"
   },
   "poweredBy": "Cu sprijinul {link}",
+  "programming": {},
   "protocol": {
     "azure": "Microsoft Azure",
     "file": "Sistem de fișiere (local)",
@@ -217,9 +239,10 @@
   "search": {
     "addCollections": "Apăsați Enter pentru a adăuga o colecție",
     "addFilter": "Adăugați un filtru",
+    "additionalFilters": "Filtre suplimentare",
     "addItemIds": "Apăsați Enter pentru a adăuga un ID de articol",
     "addSearchTerm": "Apăsați enter pentru a adăuga un termen de căutare",
-    "additionalFilters": "Filtre suplimentare",
+    "arrayInput": {},
     "dateDescription": "Toate orele sunt timp universal coordonat (UTC).",
     "enterCollections": "Introduceți una sau mai multe colecții...",
     "enterItemIds": "Introduceți unul sau mai multe ID-uri de articol...",
@@ -253,11 +276,6 @@
     "placeholder": "Căutare...",
     "selectCollections": "Selectați una sau mai multe colecții...",
     "selectForItemSearch": "Selectați pentru Căutare Articol",
-    "sortOptions": {
-      "datetime": "Data și ora",
-      "id": "Identificator",
-      "title": "Titlu"
-    },
     "spatialExtent": "Întinderea spațială",
     "tabs": {
       "collections": "Caută Colecții",
@@ -278,7 +296,7 @@
     },
     "desc": {
       "label": "Descendent",
-      "title": "Sortați descendentă (Z-A)"
+      "title": "Sortare descendentă (Z-A)"
     },
     "title": "Sortare"
   },
@@ -305,8 +323,8 @@
       "message": "{title} este disponibil la adresa {url}",
       "sharePageWithOthers": "Partajați URL-ul acestei pagini cu alții:",
       "title": "Partajare",
-      "x": "X (Twitter)",
-      "withOthers": "Partajați această pagină"
+      "withOthers": "Partajați această pagină",
+      "x": "X (Twitter)"
     },
     "stacExtension": "Extensie STAC",
     "stacVersion": "Versiune STAC",

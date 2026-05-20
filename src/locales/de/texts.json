@@ -41,12 +41,12 @@
     "password": "Passwort",
     "required": "Anmeldung erforderlich",
     "schemeTypes": {
-      "http": "HTTP {scheme}",
-      "s3": "S3",
-      "signedUrl": "Signierte URL",
-      "oauth2": "OAuth 2",
       "apiKey": "API-Schlüssel",
-      "openIdConnect": "OpenID Connect"
+      "http": "HTTP {scheme}",
+      "oauth2": "OAuth 2",
+      "openIdConnect": "OpenID Connect",
+      "s3": "S3",
+      "signedUrl": "Signierte URL"
     },
     "title": "Anmelden",
     "unauthorized": "Sie haben keine Berechtigung um diese Daten abzurufen. Bitte melden Sie sich an.",
@@ -71,13 +71,14 @@
     "true": "Ja"
   },
   "copy": "Kopieren",
+  "copyErrors": {},
   "default": "Standardeinstellung",
   "defaultWithValue": "Standardeinstellung ({value})",
   "deprecated": "Abgekündigt",
   "deprecation": {
     "fallbackTitle": "Anzeigen",
     "latestVersion": "Neueste Version:",
-    "otherVersionsNotice": "Dies ist *nicht* abgekündigt, aber andere Versionen sind verfügbar:",
+    "otherVersionsNotice": "Diese {type}-Version ist *nicht* abgekündigt, aber andere Versionen sind verfügbar:",
     "otherVersionsTitle": "Andere Versionen verfügbar",
     "outdatedTitle": "Veraltet",
     "predecessorVersion": "Vorherige Version:",
@@ -86,6 +87,7 @@
   },
   "description": "Beschreibung",
   "errors": {
+    "apiListRequested": "Die Anfrage ist ungültig. Direkte Anfragen an die Endpunkte /collections und .../items werden derzeit nicht unterstützt.",
     "authFailed": "Die Anfrage ist fehlgeschlagen, die angegebenen Anmeldedaten sind möglicherweise fehlerhaft.",
     "badRequest": "Die Anfrage ist ungültig. Dies kann an ungültigen Parametern liegen, z.B. in einer Suchanfrage, oder ein Fehler im STAC Browser sein.",
     "contactProvider": "Bitte wenden Sie sich an den Dienstanbieter, um dieses Problem zu lösen.",
@@ -108,12 +110,21 @@
     "noExternalAccess": "Der Zugriff auf externe Kataloge ist nicht erlaubt!",
     "notFound": "Die angeforderte Seite existiert nicht. @:errors.contactProvider",
     "serverError": "Auf dem Server ist ein Problem aufgetreten. @:errors.contactProvider",
+    "title": "Fehler",
     "unauthorized": "Der Anfrage fehlen die Anmeldedaten, bspw. ein API-Schlüssel. Bitte geben Sie Ihre Anmeldedaten an und versuchen Sie es erneut."
   },
+  "exampleCode": {},
   "featureExperimental": "Diese Funktion ist noch experimentell und kann unerwartete Ergebnisse verursachen!",
+  "features": {
+    "empty": "Keine Features verfügbar.",
+    "noProperties": "Keine Eigenschaften vorhanden.",
+    "title": "Feature | Features"
+  },
   "fullscreen": {
     "exit": "Verlasse den Vollbild-Modus",
-    "show": "Zeige im Vollbild-Modus"
+    "exitLabel": "✕",
+    "show": "Öffne im Vollbild-Modus",
+    "showLabel": "⛶"
   },
   "goBack": {
     "description": "Gehe zurück zu: {type}",
@@ -147,12 +158,42 @@
     "noneAvailableForCollection": "Für diesen Katalog sind keine Elemente verfügbar.",
     "showFilter": "Zeige Filter"
   },
-  "leaflet": {
-    "close": "Schließen",
-    "noFeatureProperties": "Keine weiteren Daten verfügbar für dieses Element.",
-    "stayLayer": {
-      "error": "Entschuldigung, die Daten auf der Karte anzuzeigen ist fehlgeschlagen."
+  "loading": "Lade...",
+  "map": "Karte",
+  "mapping": {
+    "attribution": {
+      "collapseLabel": "✕",
+      "description": "Namensnennungen",
+      "label": "i"
     },
+    "bboxSelect": {
+      "add": "Klicke auf die Karte, um eine Box für die räumliche Ausdehnung zu erstellen.",
+      "eastLon": "Östlicher Längengrad",
+      "error": {
+        "incomplete": "Koordinate fehlt",
+        "invalidLat": "Muss zwischen -90 und 90 liegen",
+        "invalidLon": "Muss zwischen -180 und 180 liegen",
+        "latOrder": "Südlicher Breitengrad muss kleiner als nördlicher Breitengrad sein",
+        "lonOrder": "Westlicher Längengrad muss kleiner als östlicher Längengrad sein"
+      },
+      "northLat": "Nördlicher Breitengrad",
+      "remove": "Klicke in die Box, um sie zu entfernen.",
+      "southLat": "Südlicher Breitengrad",
+      "westLon": "Westlicher Längengrad"
+    },
+    "close": "Schließen",
+    "fit": "Ansicht an räumliche Ausdehnung anpassen",
+    "layers": {
+      "base": "Grundkarten",
+      "footprint": "Räumliche Ausdehnung",
+      "title": "Kartenebenen",
+      "unnamed": "Unbenannt #{id}"
+    },
+    "location": {
+      "description": "Springe zu deiner Position"
+    },
+    "nobasemap": "Keine Grundkarten verfügbar.",
+    "nodata": "In den Metadaten sind keine räumlichen Informationen verfügbar.",
     "zoom": {
       "in": {
         "description": "Vergrößern",
@@ -160,12 +201,10 @@
       },
       "out": {
         "description": "Verkleinern",
-        "label": "-"
+        "label": "–"
       }
     }
   },
-  "loading": "Lade...",
-  "map": "Karte",
   "messageForSchemaError": "{message}, für Schema {schemaPath}",
   "metadata": {
     "general": "Allgemeines",
@@ -187,6 +226,7 @@
     "previous": "‹ Vorherige"
   },
   "poweredBy": "Generiert von {link}",
+  "programming": {},
   "protocol": {
     "azure": "Microsoft Azure",
     "file": "Dateisystem (lokal)",
@@ -217,9 +257,23 @@
   "search": {
     "addCollections": "Hinzufügen mittels Enter-Taste",
     "addFilter": "Filter hinzufügen",
+    "additionalFilters": "Weitere Filter",
     "addItemIds": "Element-Identifikationsnummern hinzufügen mittels Enter-Taste",
     "addSearchTerm": "Suchbegriff hinzufügen mittels Enter-Taste",
-    "additionalFilters": "Weitere Filter",
+    "arrayInput": {
+      "addValue": "Wert hinzufügen mittels Enter-Taste",
+      "helpText": "Wert(e) eingeben"
+    },
+    "arrayContains": "Enthält alle",
+    "arrayContainsDescription": "Liste enthält alle angegebenen Werte",
+    "arrayContainedBy": "Ist Teilmenge von",
+    "arrayContainedByDescription": "Liste enthält einen Teil der angegebenen Werte",
+    "arrayEquals": "Genau übereinstimmend",
+    "arrayEqualsDescription": "Liste stimmt genau mit den angegebenen Werten überein (gleiche Elemente, beliebige Reihenfolge)",
+    "arrayOverlaps": "Enthält mindestens einen",
+    "arrayOverlapsDescription": "Liste enthält mindestens einen der angegebenen Werte",
+    "between": "zwischen",
+    "betweenOperatorDescription": "Prüft, ob ein numerischer Wert innerhalb des angegebenen Bereichs liegt. Die angegebenen Grenzen werden eingeschlossen.",
     "dateDescription": "Alle Zeiten in koordinierter Weltzeit (UTC).",
     "enterCollections": "Gebe Katalog-Identifikationsnummern ein...",
     "enterItemIds": "Gebe Element-Identifikationsnummern ein...",
@@ -228,9 +282,11 @@
     "filterBySpatialExtent": "Filtern nach räumlicher Ausdehnung",
     "filterCollection": "Im Katalog filtern",
     "freeText": "Suchbegriffe",
-    "freeTextDescription": "Suche nach mindestens einem der angegebene Begriffen in Feldern wie dem Titel und der Beschreibung.",
+    "freeTextDescription": "Suche nach mindestens einem der angegebenen Begriffe in Feldern wie dem Titel und der Beschreibung.",
     "greaterThan": "größer als",
     "greaterThanEqual": "größer als oder entspricht",
+    "in": "enthalten in",
+    "inOperatorDescription": "Prüft, ob ein Wert in der angegebenen Liste von Werten enthalten ist.",
     "itemIds": "Element-Identifikationsnummern",
     "itemsPerPage": "Elemente pro Seite",
     "itemsPerPageDescription": "Anzahl der Elemente die pro Seite angefragt wird, maximal {maxItems} Elemente.",
@@ -239,25 +295,23 @@
     "likeOperatorDescription": "Platzhalterzeichen können verwendet werden. `_` entspricht einem einzelnen Zeichen, `%` entspricht einer beliebigen Anzahl an Zeichen. Um nach einem Platzhalterzeichen selber zu suchen, müssen ein `\\` vor das Zeichen gesetzt werden.",
     "logical": {
       "and": "Berücksichtige alle Filter (und)",
-      "or": "Berücksichtige mindestens einen der Filter (oder)"
+      "or": "Berücksichtige mindestens einen der Filter (oder)",
+      "not": "Negiere Filter"
     },
     "matches": "enthält etwa",
     "metaDescription": "Durchsuche die angebotenen Daten von {title}.",
     "modifyCriteria": "Bitte die Suchkriterien ändern.",
     "noFurtherItemsFound": "Keine weiteren Elemente verfügbar.",
     "noItemsFound": "Keine Elemente gefunden für die angegebenen Filter.",
+    "noOperatorsError": "STAC Browser unterstützt keine Operatoren für den Filter {queryable}.",
     "noOptions": "Noch nichts eingegeben",
     "notEqualTo": "entspricht nicht",
     "notFullySupported": "Eventuell werden nicht alle Optionen unterstützt.",
     "notSupported": "Suchen wird von dem Diensteanbieter nicht unterstützt.",
     "placeholder": "Suchen...",
     "selectCollections": "Wähle Kataloge...",
+    "selectDateRange": "Wähle Datumsbereich...",
     "selectForItemSearch": "Markiere für Elementsuche",
-    "sortOptions": {
-      "datetime": "Datum und Zeit",
-      "id": "Identifikationsnummer",
-      "title": "Titel"
-    },
     "spatialExtent": "Räumliche Ausdehnung",
     "tabs": {
       "collections": "Kataloge durchsuchen",
@@ -305,8 +359,8 @@
       "message": "{title} ist verfügbar unter {url}",
       "sharePageWithOthers": "Teile die Adresse dieser Seite:",
       "title": "Teilen",
-      "x": "X (Twitter)",
-      "withOthers": "Teile diese Seite mit anderen"
+      "withOthers": "Teile diese Seite mit anderen",
+      "x": "X (Twitter)"
     },
     "stacExtension": "STAC-Erweiterung",
     "stacVersion": "STAC-Version",
@@ -348,6 +402,8 @@
   "stacCollection": "Katalog | Kataloge",
   "stacItem": "Element | Elemente",
   "submit": "Absenden",
+  "switchToDarkMode": "Wechsle in die dunkle Ansicht",
+  "switchToLightMode": "Wechsle in die helle Ansicht",
   "table": {
     "emptyFilteredText": "Es gibt keine Einträge die dem Filter entsprechen",
     "emptyText": "Keine Einträge verfügbar",

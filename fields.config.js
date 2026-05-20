@@ -14,7 +14,6 @@ Registry.addMetadataField('themes', {
     label: "Themes",
     ext: "osc", 
     formatter: value => Helper.toList(value.find(v => v.scheme === "OSC:SCHEME:THEMES").concepts, true, (i) => i.id, false)
-    // check in value if thema is correct (themes)
   });
 
 Registry.addMetadataField('contacts', {

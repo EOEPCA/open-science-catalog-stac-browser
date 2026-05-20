@@ -1,33 +1,33 @@
 <template>
   <div>
     <b-button-group class="actions" :vertical="vertical" :size="size" v-if="href">
-      <b-button variant="danger" v-if="requiresAuth" :id="`popover-href-${id}-btn`" @click="handleAuthButton">
-        <b-icon-lock /> {{ $i18n.t('authentication.required') }}
+      <b-button variant="danger" v-if="requiresAuth" tag="a" tabindex="0" :id="`popover-href-${id}-btn`" @click="handleAuthButton">
+        <b-icon-lock /> {{ $t('authentication.required') }}
       </b-button>
-      <b-button v-if="hasDownloadButton" :disabled="requiresAuth" v-bind="downloadProps" v-on="downloadEvents" variant="primary">
-        <b-spinner v-if="loading" small variant="light" />
-        <b-icon-box-arrow-up-right v-else-if="browserCanOpenFile" /> 
+      <b-button v-if="canDownload && !requiresAuth" variant="primary" v-bind="downloadProps" v-on="downloadEvents">
+        <b-spinner v-if="loading" small />
+        <b-icon-box-arrow-up-right v-else-if="browserCanOpenFile" />
         <b-icon-download v-else />
         {{ buttonText }}
       </b-button>
       <CopyButton variant="primary" :copyText="href" :title="href">
         {{ copyButtonText }}
       </CopyButton>
-      <b-button v-if="hasShowButton" @click="show" variant="primary">
-        <b-icon-eye class="mr-1" />
+      <b-button v-if="hasShowButton && !requiresAuth" @click="show" variant="primary">
+        <b-icon-eye class="me-1" />
         <template v-if="isThumbnail">{{ $t('assets.showThumbnail') }}</template>
         <template v-else>{{ $t('assets.showOnMap') }}</template>
       </b-button>
-      <b-button v-for="action of actions" v-bind="action.btnOptions" :key="action.id" variant="primary" @click="action.onClick">
-        <component v-if="action.icon" :is="action.icon" class="mr-1" />
+      <b-button v-for="action of actions" :key="action.id" variant="primary" v-bind="action.btnOptions" @click="action.onClick">
+        <component v-if="action.icon" :is="action.icon" class="me-1" />
         {{ action.text }}
       </b-button>
     </b-button-group>
-    
+
     <b-popover
-      v-if="auth.length > 1"
-      :id="`popover-href-${id}`" custom-class="href-auth-methods" :target="`popover-href-${id}-btn`"
-      triggers="focus" container="stac-browser" :title="$i18n.t('authentication.chooseMethod')"
+      v-if="auth.length > 1" click focus
+      :id="`popover-href-${id}`" class="href-auth-methods" :target="`popover-href-${id}-btn`"
+      :title="$t('authentication.chooseMethod')" teleport-to="#stac-browser" :boundary-padding="10"
     >
       <b-list-group>
         <AuthSchemeItem v-for="(method, i) in auth" :key="i" :method="method" @authenticate="startAuth" />
@@ -38,33 +38,31 @@
 
 
 <script>
-import { BIconBoxArrowUpRight, BIconDownload, BIconEye, BIconLock, BListGroup, BPopover, BSpinner } from 'bootstrap-vue';
+import { defineAsyncComponent } from 'vue';
+
 import Description from './Description.vue';
-import STAC from '../models/stac';
-import Utils, { browserProtocols, imageMediaTypes, mapMediaTypes } from '../utils';
+import Utils, { mapMediaTypes } from '../utils';
+import { size } from 'stac-js/src/utils.js';
 import { mapGetters, mapState } from 'vuex';
 import AssetActions from '../../assetActions.config';
 import LinkActions from '../../linkActions.config';
-import { stacRequestOptions } from '../store/utils';
-import URI from 'urijs';
+import { URI } from 'stac-js/src/utils.js';
 import AuthUtils from './auth/utils';
+import { Asset } from 'stac-js';
+import { browserProtocols } from 'stac-js/src/http';
+import { imageMediaTypes, zarrMediaTypes } from 'stac-js/src/mediatypes';
+
+const disableDownloadTypes = [...zarrMediaTypes];
 
 let i = 0;
 
 export default {
   name: 'HrefActions',
   components: {
-    AuthSchemeItem: () => import('./AuthSchemeItem.vue'),
-    BIconBoxArrowUpRight,
-    BIconDownload,
-    BIconEye,
-    BIconLock,
-    BListGroup,
-    BPopover,
-    BSpinner,
-    CopyButton: () => import('./CopyButton.vue'),
+    AuthSchemeItem: defineAsyncComponent(() => import('./AuthSchemeItem.vue')),
+    BPopover: defineAsyncComponent(() => import('bootstrap-vue-next').then(m => m.BPopover)),
+    CopyButton: defineAsyncComponent(() => import('./CopyButton.vue')),
     Description,
-    Metadata: () => import('./Metadata.vue')
   },
   props: {
     data: {
@@ -92,18 +90,29 @@ export default {
       default: () => ([])
     }
   },
+  emits: ['show'],
   data() {
     return {
-      id: i++,
-      loading: false
+      id: i++
     };
   },
   computed: {
-    ...mapState(['pathPrefix', 'requestHeaders']),
+    ...mapState(['downloads', 'pathPrefix', 'requestHeaders', 'buildTileUrlTemplate', 'useTileLayerAsFallback']),
     ...mapGetters(['getRequestUrl']),
     ...mapGetters('auth', ['isLoggedIn']),
+    loading() {
+      return Boolean(this.downloads[this.href]);
+    },
     requiresAuth() {
       return !this.isLoggedIn && this.auth.length > 0;
+    },
+    tileRendererType() {
+      if (this.buildTileUrlTemplate && !this.useTileLayerAsFallback) {
+        return 'server';
+      }
+      else {
+        return 'client';
+      }
     },
     actions() {
       return Object.entries(this.isAsset ? AssetActions : LinkActions)
@@ -123,7 +132,7 @@ export default {
       else if (!this.isBrowserProtocol) {
         return false;
       }
-      // Otherwise, all images that a browser can read are supported + JSON
+      // Otherwise, all images that a browser can read are supported + GeoJSON
       else if (mapMediaTypes.includes(this.data?.type)) {
         return true;
       }
@@ -132,11 +141,11 @@ export default {
     hasShowButton() {
       return this.isAsset && this.canShow && !this.shown;
     },
-    hasDownloadButton() {
-      return this.isAsset && this.isBrowserProtocol;
+    canDownload() {
+      return this.isAsset && this.isBrowserProtocol && !disableDownloadTypes.includes(this.data?.type);
     },
     downloadEvents() {
-      if (this.hasDownloadButton && this.useAltDownloadMethod) {
+      if (this.canDownload && this.useAltDownloadMethod) {
         return {
           click: async (event) => {
             event.preventDefault();
@@ -146,20 +155,14 @@ export default {
       }
       return {};
     },
-    filename() {
-      if (typeof this.data['file:local_path'] === 'string') {
-        return URI(this.data['file:local_path']).filename();
-      }
-      return this.parsedHref.filename();
-    },
     downloadProps() {
-      if (this.hasDownloadButton && !this.useAltDownloadMethod) {
+      if (this.canDownload && !this.useAltDownloadMethod) {
         const props = {
           href: this.href,
           target: '_blank',
         };
         if (!this.browserCanOpenFile) {
-          props.download = this.filename;
+          props.download = Utils.assetFilename(this.data);
         }
         return props;
       }
@@ -169,10 +172,10 @@ export default {
       if (!this.isBrowserProtocol || !window.isSecureContext) {
         return false;
       }
-      else if (typeof this.data.method === 'string' && this.method.toUpperCase() !== 'GET') {
+      else if (typeof this.data.method === 'string' && this.data.method.toUpperCase() !== 'GET') {
         return true;
       }
-      else if (Utils.size(this.data.headers) > 0 || Utils.size(this.requestHeaders) > 0) {
+      else if (size(this.data.headers) > 0 || size(this.requestHeaders) > 0) {
         return true;
       }
       return false;
@@ -193,28 +196,17 @@ export default {
     },
     isThumbnail() {
       if (this.isAsset) {
-        return Array.isArray(this.data.roles) && this.data.roles.includes('thumbnail') && !this.data.roles.includes('overview');
+        return this.data.isPreview && this.data.canBrowserDisplayImage();
       }
       else {
-        return this.data.rel === 'preview' && Utils.canBrowserDisplayImage(this.data);
+        return this.data.rel === 'preview' && this.data.canBrowserDisplayImage();
       }
     },
     href() {
       if (typeof this.data.href !== 'string') {
         return null;
       }
-      let baseUrl = null;
-      if (this.context instanceof STAC) {
-        baseUrl = this.context.getAbsoluteUrl();
-      }
-      try {
-        return this.getRequestUrl(this.data.href, baseUrl);
-      } catch (e) {
-        return this.data.href;
-      }
-    },
-    parsedHref() {
-      return URI(this.href);
+      return this.getRequestUrl(this.data.getAbsoluteUrl());
     },
     from() {
       return this.protocolName(this.protocol);
@@ -223,7 +215,7 @@ export default {
       if (this.useAltDownloadMethod)  {
         return false;
       }
-      if (Utils.canBrowserDisplayImage(this.data)) {
+      if (this.data.canBrowserDisplayImage()) {
         return true;
       }
       else if (typeof this.data?.type === 'string') {
@@ -253,87 +245,10 @@ export default {
     async altDownload() {
       if (!window.isSecureContext) {
         window.location.href = this.href;
+        return;
       }
 
-      try {
-        this.loading = true;
-        const StreamSaver = require('streamsaver-js');
-
-        const uri = URI(window.origin.toString());
-        uri.path(Utils.removeTrailingSlash(this.pathPrefix) + '/mitm.html');
-        StreamSaver.mitm = uri.toString();
-
-        const link = Object.assign({}, this.data, {href: this.href});
-        const options = stacRequestOptions(this.$store, link);
-
-        // Convert from axios to fetch
-        const url = options.url;
-        delete options.url;
-        if (typeof options.data !== 'undefined') {
-          options.body = options.data;
-          delete options.data;
-        }
-
-        //options.credentials = 'include';
-
-        // Use fetch because stacRequest uses axios
-        // and axios doesn't support responseType: 'stream'
-        const res = await fetch(url, options);
-        if (res.status >= 400) {
-          let msg;
-          switch(res.status) {
-            case 401:
-              msg = this.$t('errors.unauthorized');
-              break;
-            case 403:
-              msg = this.$t('errors.authFailed');
-              break;
-            case 404:
-              msg = this.$t('errors.notFound');
-              break;
-            case 500:
-              msg = this.$t('errors.serverError');
-              break;
-            default:
-              msg = this.$t('errors.networkError');
-              break;
-          }
-          throw new Error(msg);
-        }
-
-        let filename = this.filename;
-        const contentDisposition = res.headers.get('content-disposition');
-        if (typeof contentDisposition === 'string') {
-          const parts = contentDisposition.match(/filename=(?:"|)([^"]+)(?:"|)(?:;|$)/);
-          if (parts) {
-            filename = parts[1];
-          }
-        }
-        const fileStream = StreamSaver.createWriteStream(filename);
-
-        // Prevent the user from leaving the page while the download is in progress
-        // As this is not a normal download a user need to stay on the page for the download to complete
-        window.addEventListener('unload', () => {
-          if (this.loading) {
-            fileStream.abort();
-          }
-        });
-        window.addEventListener('beforeunload', (evt) => {
-          if (this.loading) {
-            evt.preventDefault();
-          }
-        });
-
-        await res.body.pipeTo(fileStream);
-      } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          // When the download was aborted, we don't want to show an error
-          return;
-        }
-        this.$store.commit('showGlobalError', { error });
-      } finally {
-        this.loading = false;
-      }
+      await this.$store.dispatch('altDownload', this.data);
     },
     protocolName(protocol) {
       if (typeof protocol !== 'string') {
@@ -342,11 +257,12 @@ export default {
       switch(protocol.toLowerCase()) {
         case 's3':
           try {
-            const key = `protocol.s3.${this.parsedHref.domain()}`;
+            const parsed = URI(this.href);
+            const key = `protocol.s3.${parsed.domain()}`;
             if (this.$te(key)) {
               return this.$t(key);
             }
-          } catch (e) {
+          } catch {
             // Fall back to the default
           }
           return this.$t('protocol.s3.default');
@@ -365,8 +281,12 @@ export default {
       return '';
     },
     show() {
-      let data = Object.assign({}, this.data, {href: this.href});
-      this.$emit('show', data, this.id, this.isThumbnail);
+      // Clone asset so that we can change the href.
+      // The this.href may include query parameters for authentication due to getRequestUrl.
+      // Unless we make authentication data available to ol-stac in a different way, we have to add it here.
+      const data = new Asset(this.data);
+      data.href = this.href;
+      this.$emit('show', data);
     },
     handleAuthButton() {
       if (this.auth.length === 1) {
@@ -379,9 +299,12 @@ export default {
         await this.$store.dispatch('auth/requestLogin');
       }
       else {
-        const name = this.$i18n.t(`authentication.schemeTypes.${method.type}`, method);
-        const message = this.$i18n.t('authentication.unsupportedLong', {method: name});
-        this.$root.$emit('error', new Error(message), this.$i18n.t('authentication.unsupported'));
+        const name = this.$t(`authentication.schemeTypes.${method.type}`, method);
+        const message = this.$t('authentication.unsupportedLong', {method: name});
+        this.$store.commit('showGlobalError', {
+          error: new Error(message),
+          message: this.$t('authentication.unsupported')
+        });
       }
     }
   }

@@ -1,1 +1,1 @@
-export const discourseRoot = "https://discourse-earthcode.eox.at"
+export const discourseRoot = "https://discourse-earthcode.eox.at";

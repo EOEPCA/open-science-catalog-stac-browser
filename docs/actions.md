@@ -19,9 +19,9 @@ The following actions are available:
 - `Cesium`: Allows to open OGC 3D Tiles (media type `application/3dtiles+json`) files through the Cesium Sandcastle at <https://sandcastle.cesium.com>.
 - `CopcViewer`: Allows to open Cloud-Optimized Point Cloud (COPC, media type `application/vnd.laszip+copc`) files through the Hobu COPC Viewer at <https://viewer.copc.io>.
 - `F3D`: Allows to open 3D models (media types `model/gltf-binary`, `model/gltf+json`, and `application/fbx`) files through the F3D Web App at <https://f3d.app/web>.
-- `Felt`: Allows to open GeoTIFF, GeoJON and KML/KMZ files through Felt at <https://felt.com/map/>.
+- `Felt`: Allows to open GeoTIFF, GeoJSON and KML/KMZ files through Felt at <https://felt.com/map/>.
 - `Geofox`: Allows to open OGC 3D Tiles  (media type `application/3dtiles+json`) files through the 3D Assets Viewer at <https://viewer.geofox.ai>.
-- `GeoJsonIo`: Allows to open GeoJON files through [geojson.io](https://geojson.io).
+- `GeoJsonIo`: Allows to open GeoJSON files through [geojson.io](https://geojson.io).
 - `Potree`: Allows to open Cloud-Optimized Point Cloud (COPC, media type `application/vnd.laszip+copc`) and Potree files (file names `cloud.js`, `metadata.json`, `ept.json`) files through the Potree Viewer at <https://3d.iconem.com/apps/load_potree_project_from_urlparam/>.
 - `Protomaps`: Allows to open PMTiles (media type `application/vnd.pmtiles`) files through PMTiles Viewer at <https://pmtiles.io>.
 
@@ -59,7 +59,7 @@ The following actions are available:
 - `Geofox`: Allows to open OGC 3D Tiles (relation type `3d-tiles`, see [web-map-links extension](https://github.com/stac-extensions/web-map-links/blob/v1.2.0/README.md#3d-tiles)) files through the 3D Assets Viewer at <https://viewer.geofox.ai>.
 - `Protomaps`: Allows to open PMTiles (relation type `pmtiles`, see [web-map-links extension](https://github.com/stac-extensions/web-map-links/blob/v1.2.0/README.md#pmtiles)) files through PMTiles Viewer at <https://pmtiles.io>.
 
-All actions for assets are stored in the folder [`src/actions/links`](../src/actions/links) if you want to inspect them.
+All actions for links are stored in the folder [`src/actions/links`](../src/actions/links) if you want to inspect them.
 
 The actions can be enabled by adding them to the [`linkActions.config.js`](../linkActions.config.js) file.
 Open the file and you'll see a number of imports and exports.
@@ -93,7 +93,7 @@ Similarly, actions for assets are stored in the folder links are stored in the f
 The interfaces for both look as follows:
 
 - `constructor(data: object, component: Vue, id: string)`
-  - `data`: The asset or link object, it is available in the class throuh `this.asset` (for assets) and `this.link` (for links).
+  - `data`: The asset or link object, it is available in the class through `this.asset` (for assets) and `this.link` (for links).
   - `component`: The parent Asset/Link Vue component (available in the class through `this.component`)
   - `id`: Internal ID of the asset or link, not meant to be used.
 - `get btnOptions() : object`
@@ -101,7 +101,7 @@ The interfaces for both look as follows:
 - `get onClick() : function(event: MouseEvent)`
   - Returns a function that accepts a [MouseEvent](https://developer.mozilla.org/de/docs/Web/API/MouseEvent). This is the action to execute in case no `href` is set.
 - `get uri() : string`
-  - Reurns the URL to use as `href` for the button/link. This should a valid URL that a browser can navigate to, including the asset or link URL as a query parameter or so.
+  - Returns the URL to use as `href` for the button/link. This should a valid URL that a browser can navigate to, including the asset or link URL as a query parameter or so.
 - `get show() : boolean`
   - Return `true` if the action should be shown for the given asset or link. Return `false` otherwise, default to `false`.
 - `get text() : string`
@@ -115,7 +115,14 @@ It is recommended to inspect the existing actions to get an impression of what i
 
 Some notes:
 
-- It is recommended to use [urijs](https://www.npmjs.com/package/urijs) for URL manipulations, it comes packages with STAC Browser anyway.
+- It is recommended to use [urijs](https://www.npmjs.com/package/urijs) through stac-js for URL manipulations,
+  it comes packaged with STAC Browser anyway. Example:
+
+  ```js
+  import { URI } from 'stac-js/src/utils.js';
+  const parsed = URI("https://my.example/stac?a=b");
+  ```
+
 - It can be helpful to use the Vue component that is available through `this.component`, for example:
   - `this.component.href` is the absolute asset URL (while `this.asset.href` could be relative or absolute)
   - `this.component.isBrowserProtocol` returns whether it's a http/https URL

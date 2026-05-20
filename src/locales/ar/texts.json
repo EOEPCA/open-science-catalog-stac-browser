@@ -41,12 +41,12 @@
     "password": "كلمة المرور",
     "required": "المصادقة مطلوبة",
     "schemeTypes": {
-      "http": "HTTP {scheme}",
-      "s3": "S3",
-      "signedUrl": "عنوان URL موقّع",
-      "oauth2": "OAuth 2",
       "apiKey": "مفتاح API",
-      "openIdConnect": "OpenID Connect"
+      "http": "HTTP {scheme}",
+      "oauth2": "OAuth 2",
+      "openIdConnect": "OpenID Connect",
+      "s3": "S3",
+      "signedUrl": "عنوان URL موقّع"
     },
     "title": "المصادقة",
     "unauthorized": "ليس لديك إذن للوصول إلى هذه البيانات. يرجى تسجيل الدخول.",
@@ -71,6 +71,7 @@
     "true": "نعم"
   },
   "copy": "نسخ",
+  "copyErrors": {},
   "default": "افتراضي",
   "defaultWithValue": "افتراضي ({value})",
   "deprecated": "مهمل",
@@ -110,7 +111,9 @@
     "serverError": "واجه الخادم مشكلة. @:errors.contactProvider",
     "unauthorized": "يفتقر الطلب إلى بيانات الاعتماد، مثل رمز API. يرجى تقديم بيانات الاعتماد والمحاولة مرة أخرى."
   },
+  "exampleCode": {},
   "featureExperimental": "هذه الميزة لا تزال تجريبية وقد تعطي نتائج غير متوقعة!",
+  "features": {},
   "fullscreen": {
     "exit": "الخروج من وضع ملء الشاشة",
     "show": "عرض بملء الشاشة"
@@ -147,25 +150,20 @@
     "noneAvailableForCollection": "لا توجد عناصر متاحة لهذه المجموعة.",
     "showFilter": "إظهار عوامل التصفية"
   },
-  "leaflet": {
-    "close": "إغلاق",
-    "noFeatureProperties": "لا توجد بيانات إضافية متاحة لهذه الميزة.",
-    "stayLayer": {
-      "error": "عذرًا، فشل إضافة البيانات إلى الخريطة."
-    },
-    "zoom": {
-      "in": {
-        "description": "تكبير",
-        "label": "+"
-      },
-      "out": {
-        "description": "تصغير",
-        "label": "-"
-      }
-    }
-  },
   "loading": "جارٍ التحميل...",
   "map": "الخريطة",
+  "mapping": {
+    "attribution": {},
+    "bboxSelect": {
+      "error": {}
+    },
+    "layers": {},
+    "location": {},
+    "zoom": {
+      "in": {},
+      "out": {}
+    }
+  },
   "messageForSchemaError": "{message}، للمخطط {schemaPath}",
   "metadata": {
     "general": "عام",
@@ -187,6 +185,7 @@
     "previous": "‹ السابق"
   },
   "poweredBy": "مشغل بواسطة {link}",
+  "programming": {},
   "protocol": {
     "azure": "مايكروسوفت أزور",
     "file": "نظام الملفات (محلي)",
@@ -217,9 +216,10 @@
   "search": {
     "addCollections": "اضغط على Enter لإضافة مجموعة",
     "addFilter": "إضافة فلتر",
+    "additionalFilters": "فلاتر إضافية",
     "addItemIds": "اضغط على Enter لإضافة معرّف عنصر",
     "addSearchTerm": "اضغط على Enter لإضافة مصطلح بحث",
-    "additionalFilters": "فلاتر إضافية",
+    "arrayInput": {},
     "dateDescription": "جميع الأوقات بتوقيت UTC (التوقيت العالمي المنسق).",
     "enterCollections": "أدخل معرّف مجموعة واحد أو أكثر...",
     "enterItemIds": "أدخل معرّف عنصر واحد أو أكثر...",
@@ -253,11 +253,6 @@
     "placeholder": "بحث...",
     "selectCollections": "حدد مجموعة واحدة أو أكثر...",
     "selectForItemSearch": "حدد للبحث عن عنصر",
-    "sortOptions": {
-      "datetime": "التاريخ والوقت",
-      "id": "المعرّف",
-      "title": "العنوان"
-    },
     "spatialExtent": "النطاق المكاني",
     "tabs": {
       "collections": "البحث عن المجموعات",
@@ -305,8 +300,8 @@
       "message": "{title} متاح على {url}",
       "sharePageWithOthers": "مشاركة رابط هذه الصفحة في أي مكان تريده:",
       "title": "مشاركة",
-      "x": "إكس (تويتر)",
-      "withOthers": "مشاركة هذه الصفحة مع الآخرين"
+      "withOthers": "مشاركة هذه الصفحة مع الآخرين",
+      "x": "إكس (تويتر)"
     },
     "stacExtension": "امتداد STAC",
     "stacVersion": "إصدار STAC",
