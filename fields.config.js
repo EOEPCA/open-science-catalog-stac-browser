@@ -56,3 +56,26 @@ Registry.addMetadataField('osc:missions', {
 });
 
 Registry.fields.links.rel.mapping.vcs = "Version Control System";
+// DEFINE FIELDS TO IGNORE IN METADATA RENDERING
+
+/**
+ * Function that can be used to change the ignored fields in the metadata rendering.
+ * 
+ * @param {STACObject|Object} object The entity for which the metadata is rendered.
+ * @param {string[]} fields The fields ignored by default.
+ * @param {string} type The type of the entity (e.g. `CatalogLike`, `Item`, `Asset`, `Link`, `Provider`).
+ * @returns {string[]} The fields to ignore in the metadata rendering.
+ */
+const ignoreMetadata = (object, fields, type) => {
+  if (type === 'CatalogLike' && object) {
+    fields.push('access');
+    Object.keys(object).forEach((key) => {
+      if (key.startsWith("fair:")) {
+        fields.push(key);
+      }
+    });
+  }
+  return fields;
+};
+
+export { ignoreMetadata };

@@ -2,6 +2,7 @@
   <div :class="{cc: true, [cssStacType]: true, empty: !hasCatalogs && !hasItems}" :key="data.id">
     <b-row>
       <b-col class="meta">
+        <WidgetHook id="view-catalog-meta-start" />
         <section class="intro">
           <h2>{{ $t('description') }}</h2>
           <DeprecationNotice v-if="showDeprecation" :data="data" />
@@ -34,24 +35,21 @@
             </b-tabs>
           </b-card>
         </section>
-        <section v-if="isCollection && forumTopicData" class="mb-4">
-          <h2>{{ $t('topics') }}</h2>
-          <ForumTopics
-            :stacData="data"
-            :topicData="forumTopicData"
-          />
-        </section>
         <Assets v-if="hasAssets" :assets="assets" :context="data" :shown="selectedReferences" @show-asset="showAsset" />
         <Assets v-if="hasItemAssets && !hasItems" :assets="itemAssets" :context="data" :definition="true" />
         <Providers v-if="providers" :providers="providers" />
         <MetadataGroups class="mb-4" :type="data.type" :data="data" :ignoreFields="ignoredMetadataFields" />
         <CollectionLink v-if="collectionLink" :link="collectionLink" />
         <LinkList v-if="linkPosition === 'right'" :title="$t('additionalResources')" :links="additionalLinks" :context="data" />
+        <WidgetHook id="view-catalog-meta-end" />
       </b-col>
       <b-col class="catalogs-container" v-if="hasCatalogs">
+        <WidgetHook id="view-catalog-catalogs-start" />
         <Catalogs :catalogs="catalogs" :hasMore="hasMore" @load-more="loadMoreCollections" />
+        <WidgetHook id="view-catalog-catalogs-end" />
       </b-col>
       <b-col class="items-container" v-if="hasItems || hasItemAssets">
+        <WidgetHook id="view-catalog-items-start" />
         <Items
           :stac="data" :items="items" :api="isApi"
           :showFilters="showFilters" :apiFilters="filters"
@@ -61,6 +59,7 @@
           @filters-shown="filtersShown"
         />
         <Assets v-if="hasItemAssets" :assets="itemAssets" :context="data" :definition="true" />
+        <WidgetHook id="view-catalog-items-end" />
       </b-col>
     </b-row>
   </div>
@@ -71,7 +70,6 @@ import { defineComponent, defineAsyncComponent } from 'vue';
 import { mapState, mapGetters } from 'vuex';
 import Catalogs from '../components/Catalogs.vue';
 import Description from '../components/Description.vue';
-import ForumTopics from '../components/ForumTopics.vue';
 import Items from '../components/Items.vue';
 import ReadMore from "../components/ReadMore.vue";
 import ShowAssetLinkMixin from '../components/ShowAssetLinkMixin';
@@ -83,6 +81,7 @@ import { addSchemaToDocument, createCatalogSchema } from '../schema-org';
 import { ItemCollection } from '../models/stac.js';
 import DeprecationMixin from '../components/DeprecationMixin.js';
 import { BTab, BTabs, BCard } from 'bootstrap-vue-next';
+import { getIgnoredFields } from '../ignored-metadata.js';
 import { discourseRoot } from "../custom";
 
 export default defineComponent({
@@ -97,7 +96,6 @@ export default defineComponent({
     CollectionLink: defineAsyncComponent(() => import('../components/CollectionLink.vue')),
     DeprecationNotice: defineAsyncComponent(() => import('../components/DeprecationNotice.vue')),
     Description,
-    ForumTopics,
     Items,
     Keywords: defineAsyncComponent(() => import('../components/Keywords.vue')),
     LinkList: defineAsyncComponent(() => import('../components/LinkList.vue')),
@@ -105,7 +103,8 @@ export default defineComponent({
     MetadataGroups: defineAsyncComponent(() => import('../components/MetadataGroups.vue')),
     Providers: defineAsyncComponent(() => import('../components/Providers.vue')),
     ReadMore,
-    Thumbnails: defineAsyncComponent(() => import('../components/Thumbnails.vue'))
+    Thumbnails: defineAsyncComponent(() => import('../components/Thumbnails.vue')),
+    WidgetHook: defineAsyncComponent(() => import('../plugins/WidgetHook.vue'))
   },
   mixins: [
     ShowAssetLinkMixin,
@@ -115,47 +114,13 @@ export default defineComponent({
   data() {
     return {
       filters: {},
-      forumTopicData: null,
     };
   },
   computed: {
     ...mapState(['data', 'url', 'apiCatalogPriority',  'apiItems', 'apiItemsLink', 'apiItemsPagination', 'apiItemsNumberMatched', 'nextCollectionsLink', 'stateQueryParameters']),
     ...mapGetters(['catalogs', 'collectionLink', 'isCollection', 'items', 'getApiItemsLoading', 'parentLink', 'rootLink']),
     ignoredMetadataFields() {
-      return [
-        // Catalog and Collection fields that are handled directly
-        'stac_version',
-        'stac_extensions',
-        'id',
-        'type',
-        'title',
-        'description',
-        'keywords',
-        'providers',
-        'license',
-        'extent',
-        'summaries',
-        'links',
-        'assets',
-        'item_assets',
-        // Don't show these complex lists of coordinates: https://github.com/radiantearth/stac-browser/issues/141
-        'proj:bbox',
-        'proj:geometry',
-        // API landing page, not very useful to display, but https://github.com/radiantearth/stac-browser/issues/136
-        'conformsTo',
-        // Will be rendered with a custom rendered
-        'deprecated',
-        // Special handling for the warning of the anonymized-location extension
-        'anon:warning',
-        // Special handling for the stats extension
-        'stats:catalogs',
-        'stats:collections',
-        'stats:items',
-        // Special handling for auth
-        'auth:schemes',
-        // Special handling for the STAC Browser config
-        'stac_browser',
-      ];
+      return getIgnoredFields(this.data, 'CatalogLike');
     },
     cssStacType() {
       if (hasText(this.data?.type)) {
@@ -267,15 +232,6 @@ export default defineComponent({
     }
   },
   async mounted() {
-    // OSC: Fetch related forum topics from EarthCODE Discourse
-    try {
-      const response = await fetch(`${discourseRoot}/search.json?q=${this.data.title}`);
-      if (response.ok) {
-        this.forumTopicData = await response.json();
-      }
-    } catch (error) {
-      console.error('Failed to fetch forum topics:', error);
-    }
   },
   methods: {
     filtersShown(show) {
