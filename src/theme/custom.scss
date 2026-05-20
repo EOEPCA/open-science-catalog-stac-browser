@@ -1,6 +1,6 @@
-.share>.btn-group>:not(button#popover-link-btn) {
+.share>.btn-group>:not(a#popover-link-btn) {
   display: none;
 }
-.share>.btn-group>button#popover-link-btn {
+.share>.btn-group>a#popover-link-btn {
   border-radius: .25rem !important;
 }
