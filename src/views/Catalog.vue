@@ -21,7 +21,7 @@
               <b-col md="8" class="value"><span v-html="temporalExtents" /></b-col>
             </b-row>
           </section>
-          <LinkList v-if="linkPosition === 'left'" :title="$t('additionalResources')" :links="additionalLinks" :context="data" />
+          <LinkList v-if="linkPosition === 'left'" :title="$t('additionalResources')" :links="additionalLinks" />
         </section>
         <section v-if="isCollection || hasThumbnails" class="mb-4">
           <b-card no-body class="maps-preview">
@@ -35,12 +35,11 @@
             </b-tabs>
           </b-card>
         </section>
-        <Assets v-if="hasAssets" :assets="assets" :context="data" :shown="selectedReferences" @show-asset="showAsset" />
-        <Assets v-if="hasItemAssets && !hasItems" :assets="itemAssets" :context="data" :definition="true" />
+        <Assets v-if="hasAssets" :assets="assets" :shown="selectedReferences" @show-asset="showAsset" />
+        <Assets v-if="hasItemAssets && !hasItems" :assets="itemAssets" :definition="true" />
         <Providers v-if="providers" :providers="providers" />
         <MetadataGroups class="mb-4" :type="data.type" :data="data" :ignoreFields="ignoredMetadataFields" />
-        <CollectionLink v-if="collectionLink" :link="collectionLink" />
-        <LinkList v-if="linkPosition === 'right'" :title="$t('additionalResources')" :links="additionalLinks" :context="data" />
+        <LinkList v-if="linkPosition === 'right'" :title="$t('additionalResources')" :links="additionalLinks" />
         <WidgetHook id="view-catalog-meta-end" />
       </b-col>
       <b-col class="catalogs-container" v-if="hasCatalogs">
@@ -58,7 +57,7 @@
           @paginate="paginateItems" @filter-items="filterItems"
           @filters-shown="filtersShown"
         />
-        <Assets v-if="hasItemAssets" :assets="itemAssets" :context="data" :definition="true" />
+        <Assets v-if="hasItemAssets" :assets="itemAssets" :definition="true" />
         <WidgetHook id="view-catalog-items-end" />
       </b-col>
     </b-row>
@@ -102,8 +101,7 @@ export default defineComponent({
     MetadataGroups: defineAsyncComponent(() => import('../components/MetadataGroups.vue')),
     Providers: defineAsyncComponent(() => import('../components/Providers.vue')),
     ReadMore,
-    Thumbnails: defineAsyncComponent(() => import('../components/Thumbnails.vue')),
-    WidgetHook: defineAsyncComponent(() => import('../plugins/WidgetHook.vue'))
+    Thumbnails: defineAsyncComponent(() => import('../components/Thumbnails.vue'))
   },
   mixins: [
     ShowAssetLinkMixin,
@@ -112,7 +110,7 @@ export default defineComponent({
   ],
   data() {
     return {
-      filters: {},
+      filters: {}
     };
   },
   computed: {
@@ -148,7 +146,7 @@ export default defineComponent({
       return this.apiCatalogPriority !== 'childs' && Boolean(this.nextCollectionsLink);
     },
     licenses() {
-      if (this.isCollection && this.data.license) {
+      if (this.data.license) {
         return this.formatLicense(this.data.license, null, null, this.data);
       }
       return null;
@@ -167,8 +165,8 @@ export default defineComponent({
       if (this.isCollection && this.data.extent.temporal.interval.length > 0) {
         let extents = this.data.extent.temporal.interval;
         if (extents.length > 1) {
-            // Remove union temporal extent in favor of more concrete extents
-            extents = extents.slice(1);
+          // Remove union temporal extent in favor of more concrete extents
+          extents = extents.slice(1);
         }
         return this.formatTemporalExtents(extents);
       }
@@ -232,7 +230,7 @@ export default defineComponent({
   },
   methods: {
     filtersShown(show) {
-        this.$store.commit('updateState', {type: 'itemFilterOpen', value: show ? 1 : null});
+      this.$store.commit('updateState', {type: 'itemFilterOpen', value: show ? 1 : null});
     },
     loadMoreCollections() {
       this.$store.dispatch('loadNextApiCollections', {show: true});
