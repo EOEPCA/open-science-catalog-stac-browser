@@ -37,15 +37,11 @@ The [release process is documented separately](docs/release.md).
 
 ## Tests
 
-This directory contains end-to-end tests for STAC Browser using Playwright.
+End-to-end tests for STAC Browser using [Playwright](https://playwright.dev). All tests run against mock data — no real network calls.
+
+For work on testing fixtures, test fixture documentation can be found [here](tests/TESTING_DOCS.md).
 
 Tests are located in the `tests/e2e` directory and follow the naming convention `*.spec.js`.
-
-**Additional resources:**
-
-- [Playwright Documentation](https://playwright.dev/docs/intro)
-- [Best Practices](https://playwright.dev/docs/best-practices)
-- [Locators](https://playwright.dev/docs/locators)
 
 ## Running Tests
 
@@ -54,6 +50,14 @@ Tests are located in the `tests/e2e` directory and follow the naming convention 
 - `npm run test:e2e:headed`: Run UI tests in headed mode (see browser)
 - `npm run test:e2e:debug`: Debug UI tests
 - `npm run test:e2e:report`: View UI test report
+
+**Additional resources:**
+
+- [Test Fixture Documentation](tests/TESTING_DOCS.md)
+- [Playwright Documentation](https://playwright.dev/docs/intro)
+- [Best Practices](https://playwright.dev/docs/best-practices)
+- [Locators](https://playwright.dev/docs/locators)
+
 
 ## AI Use Policy
 

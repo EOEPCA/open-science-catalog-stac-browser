@@ -11,7 +11,6 @@
             <Description :description="data.description" />
           </ReadMore>
           <Keywords v-if="Array.isArray(data.keywords) && data.keywords.length > 0" :keywords="data.keywords" class="mb-3" />
-          <CollectionLink v-if="collectionLink" :link="collectionLink" />
           <section v-if="isCollection" class="metadata mb-4">
             <b-row v-if="licenses">
               <b-col md="4" class="label">{{ $t('catalog.license') }}</b-col>
@@ -22,7 +21,7 @@
               <b-col md="8" class="value"><span v-html="temporalExtents" /></b-col>
             </b-row>
           </section>
-          <LinkList v-if="linkPosition === 'left'" :title="$t('additionalResources')" :links="additionalLinks" />
+          <LinkList v-if="linkPosition === 'left'" :title="$t('additionalResources')" :links="additionalLinks" :context="data" />
         </section>
         <section v-if="isCollection || hasThumbnails" class="mb-4">
           <b-card no-body class="maps-preview">
@@ -36,11 +35,12 @@
             </b-tabs>
           </b-card>
         </section>
-        <Assets v-if="hasAssets" :assets="assets" :shown="selectedReferences" @show-asset="showAsset" />
-        <Assets v-if="hasItemAssets && !hasItems" :assets="itemAssets" :definition="true" />
+        <Assets v-if="hasAssets" :assets="assets" :context="data" :shown="selectedReferences" @show-asset="showAsset" />
+        <Assets v-if="hasItemAssets && !hasItems" :assets="itemAssets" :context="data" :definition="true" />
         <Providers v-if="providers" :providers="providers" />
         <MetadataGroups class="mb-4" :type="data.type" :data="data" :ignoreFields="ignoredMetadataFields" />
-        <LinkList v-if="linkPosition === 'right'" :title="$t('additionalResources')" :links="additionalLinks" />
+        <CollectionLink v-if="collectionLink" :link="collectionLink" />
+        <LinkList v-if="linkPosition === 'right'" :title="$t('additionalResources')" :links="additionalLinks" :context="data" />
         <WidgetHook id="view-catalog-meta-end" />
       </b-col>
       <b-col class="catalogs-container" v-if="hasCatalogs">
@@ -58,7 +58,7 @@
           @paginate="paginateItems" @filter-items="filterItems"
           @filters-shown="filtersShown"
         />
-        <Assets v-if="hasItemAssets" :assets="itemAssets" :definition="true" />
+        <Assets v-if="hasItemAssets" :assets="itemAssets" :context="data" :definition="true" />
         <WidgetHook id="view-catalog-items-end" />
       </b-col>
     </b-row>
@@ -82,6 +82,7 @@ import { ItemCollection } from '../models/stac.js';
 import DeprecationMixin from '../components/DeprecationMixin.js';
 import { BTab, BTabs, BCard } from 'bootstrap-vue-next';
 import { getIgnoredFields } from '../ignored-metadata.js';
+import { discourseRoot } from "../custom";
 
 export default defineComponent({
   name: "Catalog",
@@ -102,7 +103,8 @@ export default defineComponent({
     MetadataGroups: defineAsyncComponent(() => import('../components/MetadataGroups.vue')),
     Providers: defineAsyncComponent(() => import('../components/Providers.vue')),
     ReadMore,
-    Thumbnails: defineAsyncComponent(() => import('../components/Thumbnails.vue'))
+    Thumbnails: defineAsyncComponent(() => import('../components/Thumbnails.vue')),
+    WidgetHook: defineAsyncComponent(() => import('../plugins/WidgetHook.vue'))
   },
   mixins: [
     ShowAssetLinkMixin,
@@ -111,7 +113,7 @@ export default defineComponent({
   ],
   data() {
     return {
-      filters: {}
+      filters: {},
     };
   },
   computed: {
@@ -147,7 +149,7 @@ export default defineComponent({
       return this.apiCatalogPriority !== 'childs' && Boolean(this.nextCollectionsLink);
     },
     licenses() {
-      if (this.data.license) {
+      if (this.isCollection && this.data.license) {
         return this.formatLicense(this.data.license, null, null, this.data);
       }
       return null;
@@ -229,6 +231,8 @@ export default defineComponent({
       }
     }
   },
+  async mounted() {
+  },
   methods: {
     filtersShown(show) {
         this.$store.commit('updateState', {type: 'itemFilterOpen', value: show ? 1 : null});
@@ -305,7 +309,7 @@ export default defineComponent({
     }
   }
 
-  @include media-breakpoint-down(lg) {
+  @include media-breakpoint-down(md) {
     > .row {
       > .meta,
       > .items-container,

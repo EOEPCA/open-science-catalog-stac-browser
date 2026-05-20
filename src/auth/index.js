@@ -1,5 +1,9 @@
+import BrowserStorage from "../browser-store";
 import i18n from '../i18n';
 import { hasText, isObject } from 'stac-js/src/utils.js';
+
+const KEY_METHOD = 'auth-last-method';
+const KEY_ORIGINAL_URI = 'auth-original-uri';
 
 export default class Auth {
 
@@ -14,6 +18,7 @@ export default class Auth {
     this.options = isObject(options) ? options : {};
     this.changeListener = changeListener;
     this.router = router;
+    this.browserStorage = new BrowserStorage(true);
   }
 
   /**
@@ -31,7 +36,7 @@ export default class Auth {
    * @returns {string}
    */
   getLoginLabel() {
-  return i18n.global.t('authentication.button.login');
+    return i18n.global.t('authentication.button.login');
   }
 
   /**
@@ -40,7 +45,7 @@ export default class Auth {
    * @returns {string}
    */
   getLogoutLabel() {
-  return i18n.global.t('authentication.button.logout');
+    return i18n.global.t('authentication.button.logout');
   }
 
   getComponent() {
@@ -52,10 +57,10 @@ export default class Auth {
   }
 
   async init() {
-    return;
   }
 
   async login() {
+    this.storeSession();
   }
 
   async confirmLogin(credentials) {
@@ -65,6 +70,13 @@ export default class Auth {
   }
 
   async logout(/*credentials*/) {
+    this.storeSession();
+  }
+
+  // Tries to resume a user session after e.g. page reload.
+  // Returns true if a session could be resumed, false otherwise.
+  async resume() {
+    return false;
   }
 
   async confirmLogout() {
@@ -75,6 +87,39 @@ export default class Auth {
 
   async close() {
     return;
+  }
+
+  storeSession() {
+    this.persistMethod();
+    this.setOriginalUri();
+  }
+
+  setOriginalUri() {
+    this.browserStorage.set(KEY_ORIGINAL_URI, this.router.currentRoute.value.fullPath);
+  }
+
+  restoreOriginalUri() {
+    let originalUri = this.browserStorage.get(KEY_ORIGINAL_URI);
+    if (this.router && hasText(originalUri)) {
+      if (originalUri.startsWith('/auth/logout')) {
+        originalUri = '/';
+      }
+      this.router.replace(originalUri);
+    }
+    this.browserStorage.remove(KEY_ORIGINAL_URI);
+  }
+
+  static restoreLastMethod(clean = true) {
+    const storage = new BrowserStorage(true);
+    const method = storage.get(KEY_METHOD);
+    if (clean) {
+      storage.remove(KEY_METHOD);
+    }
+    return method;
+  }
+
+  persistMethod() {
+    this.browserStorage.set(KEY_METHOD, this.options);
   }
 
   updateStore(/*value*/) {

@@ -29,8 +29,12 @@ If you care about STAC Browser and have some funds to support the future of STAC
     - [Code Generators](#code-generators)
     - [Additional metadata fields](#additional-metadata-fields)
       - [Example](#example)
+    - [Widgets](#widgets)
+    - [Metadata fields](#metadata-fields)
+    - [Customization through root catalog](#customization-through-root-catalog)
     - [Custom extensions](#custom-extensions)
   - [Docker](#docker)
+  - [Testing](#testing)
   - [Contributing](#contributing)
   - [Sponsors](#sponsors)
 
@@ -139,15 +143,9 @@ Please read the **[localization documentation](docs/localization.md)** for more 
 
 ### Themes
 
-You can customize STAC Browser in the `src/theme` folder. It contains Sass files (a CSS preprocessor), which you can change to suit your needs.
+STAC Browser can be themed both at build time (SASS variables) and at runtime (CSS custom properties), with full support for light and dark mode.
 
-The easiest solution is to start with the `variables.scss` file and customize the options given there.
-For simplicity we just provide some common options as default, but you can also add and customize any Bootstrap variable,
-see <https://getbootstrap.com/docs/4.0/getting-started/theming/> for details.
-
-The file `page.scss` contains some Sass declarations for the main sections of STAC Browser and you can adopt those to suit your needs.
-
-If you need even more flexibility, you need to dig into the Vue files and their dependencies though.
+Please read the **[Styling & Theming documentation](docs/styling.md)** for more details.
 
 ### Basemaps
 
@@ -160,6 +158,7 @@ More information about how to configure and customize the basemaps can be found 
 STAC Browser has a pluggable interface to share or open assets and links with other services, which we call "actions".
 
 More information about how to add or implement actions can be found in the **[Actions documentation](docs/actions.md)**.
+
 ### Code Generators
 
 The list of supported code snippet languages is configured in [`codeGenerators.config.js`](codeGenerators.config.js).
@@ -213,7 +212,6 @@ You can also provide a couple of the config options through the root catalog.
 You need to provide a field `stac_browser` and then you can set any of the following options:
 
 - `apiCatalogPriority`
-- `authConfig` (except for the `formatter` as function)
 - `cardViewMode`
 - `cardViewSort`
 - `crossOriginMedia`
@@ -234,6 +232,16 @@ STAC Browser supports some non-standardized extensions to the STAC specification
 ## Docker
 
 You can use the Docker to work with STAC Browser. Please read [Docker documentation](docs/docker.md) for more details.
+
+## Testing
+
+To run the testing suite locally:
+
+```bash
+npm test
+```
+
+For more information on testing, see [CONTRIBUTING.md](CONTRIBUTING.md#tests)
 
 ## Contributing
 

@@ -1,9 +1,6 @@
 import { Registry, Helper } from '@radiantearth/stac-fields';
 
-// For details, please consult
-// https://github.com/radiantearth/stac-browser/blob/main/docs/metadata.md
-
-// ADD ADDITIONAL FIELDS AND EXTENSIONS HERE
+// Please consult https://github.com/radiantearth/stac-browser/blob/main/README.md#additional-metadata-fields for details.
 
 // Registry.addExtension('radiant', 'Radiant Earth');
 // Registry.addMetadataField('radiant:public_access', {
@@ -59,7 +56,6 @@ Registry.addMetadataField('osc:missions', {
 });
 
 Registry.fields.links.rel.mapping.vcs = "Version Control System";
-
 // DEFINE FIELDS TO IGNORE IN METADATA RENDERING
 
 /**

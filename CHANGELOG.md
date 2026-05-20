@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.0-beta.1] - 2026-05-12
+
+**THIS IS A BREAKING RELEASE - MAKE SURE TO UPDATE ALL YOUR CONFIG FILES!**
+
 ### Added
 
 - Allow manually entering bounding boxes for search
@@ -15,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Plugin system for widgets
 - Support for Sortables
 - Support `SB_CONFIG` for loading a custom config module
+  - Expose `SB_CONFIG` as a Docker build argument
 - Support Vite `loadEnv` for `.env` config overrides
 - CQL2 / Queryables:
   - Allow negating CQL2 filters (globally and per filter)
@@ -22,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Support CQL2 Array Functions
 - Ignored metadata fields can be configured in `fields.config.js`
 - PlayWright tests
+- Add config option `displayOverviewsForChildren` to toggle visualizing overviews for maps showing many STAC Items
+- Color modes:
+  - Support for dark mode (defaults to auto-detection based on system settings of the user)
+  - Added `enforcedColorMode` config option to enforce a specific color mode (e.g. always show "light" mode)
+  - Added a color mode switch in the header (next to the language chooser)
+- Added more documentation around styling
 
 ### Changed
 
@@ -40,13 +51,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     Most imports have moved to stac-js.
     For example, `Utils.isObject` is now `isObject` and can be imported from `stac-js/src/utils.js`.
 - It is not needed any longer to update the path to the `runtime-config.js`, the `pathPrefix` is added automatically in the build process.
-
-### Deprecated
-
+- User stay logged in across sessions (for OpenID Connect only)
+- CSS declarations have been updated to reuse existing variables in favor of hardcoding certain colors etc.
+- `configureBasemap` accepts an additional parameter, the VueX Store (e.g. for different basemaps depending on the color mode).
 
 ### Removed
 
 - CLI parameters for npm commands (e.g. `npm run build -- --catalogUrl="https://example.com"`) as they are not supported by Vite. Make sure to check your CI scripts and Docker files.
+- Support for customizing `authConfig` through the root catalog has been removed. Use the STAC Authentication extension instead.
+- Removed the `DYNAMIC_CONFIG` Docker build argument and `<!--RC RC-->` comment-based mechanism to use runtime config options. Use `SB_RUNTIME` instead.
 
 ### Fixed
 
@@ -55,6 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Collection list on Global Item Search was empty in certain situations
 - Show an error message when no operator is supported for a queryable
 - Don't show an "unsupported" error when only Collection Search is supported by the API
+- Remove download button for ZARR assets
+- Fixed authentication for assets when authentication methods is not configured in STAC Browser
 
 ## [4.0.1] - 2026-02-11
 
@@ -128,7 +143,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 For releases prior to v4.0.0, please refer to the
 [release notes in the GitHub Releases](https://github.com/radiantearth/stac-browser/releases).
 
-[Unreleased]: https://github.com/radiantearth/stac-browser/compare/v4.0.1...HEAD
+[Unreleased]: https://github.com/radiantearth/stac-browser/compare/v5.0.0-beta.1...HEAD
+[5.0.0-beta.1]: https://github.com/radiantearth/stac-browser/compare/v4.0.1...v5.0.0-beta.1
 [4.0.1]: https://github.com/radiantearth/stac-browser/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/radiantearth/stac-browser/compare/v3.3.5...v4.0.0
 [3.3.5]: https://github.com/radiantearth/stac-browser/releases/tag/v3.3.5

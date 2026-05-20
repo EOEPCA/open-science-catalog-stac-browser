@@ -1,6 +1,7 @@
 import { createStore } from "vuex";
 
 import { URI } from 'stac-js/src/utils.js';
+import urijs from 'urijs';
 
 import i18n, { getDataLanguages, translateFields, executeCustomFunctions, loadMessages } from '../i18n';
 import Utils, { BrowserError } from '../utils';
@@ -62,7 +63,8 @@ function getStore(config, router) {
       downloads: {},
       allowSelectCatalog: !config.catalogUrl,
       globalRequestQueryParameters: config.requestQueryParameters,
-      uiLanguage: config.locale
+      uiLanguage: config.locale,
+      colorMode: (config.enforcedColorMode && config.enforcedColorMode !== 'auto') ? config.enforcedColorMode : 'light',
     }),
     getters: {
       isRoot: (state, getters) => {
@@ -308,7 +310,7 @@ function getStore(config, router) {
         if (!state.catalogUrl) {
           return false;
         }
-        if (!(absoluteUrl instanceof URI)) {
+        if (!(absoluteUrl instanceof urijs)) {
           absoluteUrl = URI(absoluteUrl);
         }
         if (whitelist && Array.isArray(state.allowedDomains) && state.allowedDomains.some(d => hasAuthority(d, absoluteUrl))) {
@@ -382,6 +384,9 @@ function getStore(config, router) {
       }
     },
     mutations: {
+      setColorMode(state, mode) {
+        state.colorMode = mode;
+      },
       config(state, config) {
         // This should only be called from the config action
         for (let key in config) {
@@ -631,7 +636,7 @@ function getStore(config, router) {
         // React on config changes
         for (let key in config) {
           let value = cx.state[key];
-          if (value !== oldConfig[key]) {
+          if (value === oldConfig[key]) {
             continue;
           }
           switch (key) {

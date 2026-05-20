@@ -46,15 +46,18 @@ export default defineConfig({
 
     /* Clipboard permissions for copy-related tests */
     permissions: ['clipboard-read', 'clipboard-write'],
-
-    /* Keep UI language deterministic for i18n-based selectors */
-    locale: 'en-US',
     
     /* Screenshot on failure */
     screenshot: 'only-on-failure',
     
     /* Video on failure */
     video: 'retain-on-failure',
+
+    /* Force English locale so tests are deterministic regardless of host/CI locale.
+       The app auto-detects language from navigator.languages when detectLocaleFromBrowser is true. */
+    locale: 'en',
+
+    permissions: ['clipboard-read', 'clipboard-write'],
   },
 
   /* Configure projects for major browsers */

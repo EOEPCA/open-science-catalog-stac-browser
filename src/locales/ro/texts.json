@@ -71,6 +71,7 @@
     "true": "Doar"
   },
   "copy": "Copiază",
+  "copyErrors": {},
   "default": "Implicit",
   "defaultWithValue": "Implicit ({value})",
   "deprecated": "Învechit",
@@ -111,6 +112,7 @@
     "title": "Eroare",
     "unauthorized": "Solicitarea necesită informații de autentificare, cum ar fi un token API. Vă rugăm să furnizați acreditările și să încercați din nou"
   },
+  "exampleCode": {},
   "featureExperimental": "Această funcție este încă experimentală și poate da rezultate neașteptate!",
   "features": {
     "noProperties": "Nu au fost furnizate proprietăți."
@@ -206,6 +208,7 @@
     "previous": "‹ Precedent"
   },
   "poweredBy": "Cu sprijinul {link}",
+  "programming": {},
   "protocol": {
     "azure": "Microsoft Azure",
     "file": "Sistem de fișiere (local)",

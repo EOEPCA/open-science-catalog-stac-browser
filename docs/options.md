@@ -72,10 +72,12 @@ The override order for the configuration is:
   - [useTileLayerAsFallback](#usetilelayerasfallback)
   - [displayPreview](#displaypreview)
   - [displayOverview](#displayoverview)
+  - [displayOverviewsForChildren](#displayoverviewsforchildren)
   - [displayGeoTiffByDefault](#displaygeotiffbydefault)
   - [crs](#crs)
   - [getMapSourceOptions](#getmapsourceoptions)
 - [User Interface](#user-interface)
+  - [enforcedColorMode](#enforcedcolormode)
   - [searchResultsPerPage](#searchresultsperpage)
   - [itemsPerPage](#itemsperpage)
   - [collectionsPerPage](#collectionsperpage)
@@ -119,6 +121,7 @@ Should be an image that browsers can display, e.g. PNG, JPEG, WebP, or SVG.
 Array of links to display in the footer above the "Powered by STAC Browser" text. Each link requires a `label` and `url`.
 
 Example:
+
 ```js
 footerLinks: [
   { label: "Imprint", url: "https://example.com/imprint" },
@@ -408,6 +411,13 @@ If both `displayPreview` and `displayOverview` (see below) are enabled, STAC Bro
 
 If set to `true` (default), allows to display COGs and, if `displayGeoTiffByDefault` is enabled, GeoTiffs on the map as default visualization, usually from an asset with role `overview` or `visual`.
 
+### displayOverviewsForChildren
+
+Similar to `displayOverview` (see above), but defaults to `false`.
+Applies only to maps that show multiple STAC entitieies, i.e. lists of items for a Collection or Search.
+Displaying a large number of COGs or Zarrs at the same time on a map, can be slow.
+Thus, this is disabled by default.
+
 ### displayGeoTiffByDefault
 
 If set to `true`, the map also shows non-cloud-optimized GeoTiff files by default. Otherwise (`false`, default), it only shows COGs and you can only enforce showing GeoTiffs to be loaded with the "Show on map" button but they are never loaded automatically.
@@ -456,6 +466,12 @@ getSourceOptions: async (type, options) => {
 ```
 
 ## User Interface
+
+### enforcedColorMode
+
+STAC Browser supports light and dark modes since v5.0.0.
+By default, this value is set to `auto`, which detects the user preference based on the system settings.
+This config option allows to enforce a specific color mode, either `light` (default before v5.0.0) or `dark`.
 
 ### searchResultsPerPage
 

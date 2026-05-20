@@ -1,7 +1,7 @@
 import Auth from '../auth';
 import i18n from '../i18n';
 import AuthUtils from '../components/auth/utils';
-import BrowserStorage, { Cookies } from '../browser-store';
+import { Cookies } from '../browser-store';
 
 const handleAuthError = async (cx, error) => {
   cx.commit('showGlobalError', {
@@ -78,12 +78,10 @@ export default function getStore(router) {
             cx.commit('resetActions');
           }
         };
-        
-        const storage = new BrowserStorage(true);
-        storage.set('authConfig', config);
 
         const newAuth = await Auth.create(router, config, changeListener);
         cx.commit('setMethod', newAuth);
+        await newAuth.resume();
       },
       async requestLogin(cx) {
         if (cx.getters.isLoggedIn) {

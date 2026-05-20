@@ -71,6 +71,7 @@
     "true": "نعم"
   },
   "copy": "نسخ",
+  "copyErrors": {},
   "default": "افتراضي",
   "defaultWithValue": "افتراضي ({value})",
   "deprecated": "مهمل",
@@ -110,6 +111,7 @@
     "serverError": "واجه الخادم مشكلة. @:errors.contactProvider",
     "unauthorized": "يفتقر الطلب إلى بيانات الاعتماد، مثل رمز API. يرجى تقديم بيانات الاعتماد والمحاولة مرة أخرى."
   },
+  "exampleCode": {},
   "featureExperimental": "هذه الميزة لا تزال تجريبية وقد تعطي نتائج غير متوقعة!",
   "features": {},
   "fullscreen": {
@@ -183,6 +185,7 @@
     "previous": "‹ السابق"
   },
   "poweredBy": "مشغل بواسطة {link}",
+  "programming": {},
   "protocol": {
     "azure": "مايكروسوفت أزور",
     "file": "نظام الملفات (محلي)",

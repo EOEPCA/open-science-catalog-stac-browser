@@ -71,6 +71,7 @@
     "true": "Oui"
   },
   "copy": "Copier",
+  "copyErrors": {},
   "default": "Défault",
   "defaultWithValue": "Défault ({value})",
   "deprecated": "Déprécié",
@@ -111,6 +112,7 @@
     "title": "Erreur",
     "unauthorized": "La requête requiert des informations d'authentification, comme par exemple un jeton API. Veuillez fournir vos informations d'authentification et réessayer"
   },
+  "exampleCode": {},
   "featureExperimental": "Cette fonctionnalité est encore expérimentale et peut donner des résultats inattendus!",
   "features": {
     "empty": "Aucune entité disponible.",
@@ -213,6 +215,7 @@
     "previous": "‹ Précédent"
   },
   "poweredBy": "Propulsé par {link}",
+  "programming": {},
   "protocol": {
     "azure": "Microsoft Azure",
     "file": "Système de fichiers (local)",
