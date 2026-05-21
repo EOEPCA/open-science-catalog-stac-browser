@@ -54,22 +54,22 @@ export default {
     requestQueryParameters: {},
     socialSharing: [],
     preprocessSTAC: (stac) => {
-        if (Array.isArray(stac.links)) {
+        if(stac.type === "Feature") {
             stac.links = stac.links.map(link => {
                 if (link.rel === "child") {
                     link.rel = "related";
                     if (link.href.includes("/experiments/")) {
-                        link.title = `Experiment: ${link.title}`;
+                      link.title = `Experiment: ${link.title}`;
                     }
                     if (link.href.includes("/workflows/")) {
-                        link.title = `Workflow: ${link.title}`;
+                      link.title = `Workflow: ${link.title}`;
                     }
                     if (link.href.includes("/products/")) {
-                        link.title = `Product: ${link.title}`;
+                      link.title = `Product: ${link.title}`;
                     }
                 }
                 return link;
-            });
+            })
         }
         return stac;
     },
