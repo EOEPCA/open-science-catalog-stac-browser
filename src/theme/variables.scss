@@ -110,6 +110,9 @@ $headings-color: inherit; // h3, h4, h5, h6
 $link-color: $primary;
 $link-hover-color: darken($link-color, 15%);
 
+$link-color-on-primary: tint-color($primary, 60%);
+$link-hover-color-on-primary: $body-bg;
+
 @import 'bootstrap/scss/_variables';
 
 // ─────────────────────────────────────────────────────────
