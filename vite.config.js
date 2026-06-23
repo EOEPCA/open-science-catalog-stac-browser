@@ -87,6 +87,10 @@ export default defineConfig(async ({ mode }) => {
     build: {
       sourcemap: mode !== "minimal",
       rollupOptions: {
+        input: {
+          main: resolve(__dirname, "index.html"),
+          catalog: resolve(__dirname, "catalog.html")
+        },
         external: ["fs/promises"],
       },
     },

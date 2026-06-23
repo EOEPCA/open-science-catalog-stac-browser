@@ -1,5 +1,5 @@
 export default {
-    catalogUrl: null,
+    catalogUrl: "https://esa-earthcode.github.io/open-science-catalog-metadata-staging/catalog.json",
     catalogTitle: "Open Science Catalog",
     catalogImage: null,
     allowExternalAccess: true, // Must be true if catalogUrl is not given
@@ -38,7 +38,7 @@ export default {
     displayOverviewsForChildren: false,
     buildTileUrlTemplate: null,
     getMapSourceOptions: null,
-    pathPrefix: "/stac-browser/",
+    pathPrefix: "/",
     historyMode: "hash",
     cardViewMode: "list",
     cardViewSort: "asc",

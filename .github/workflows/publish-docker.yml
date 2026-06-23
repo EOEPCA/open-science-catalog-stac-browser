@@ -1,62 +1,78 @@
-name: Publish Docker Image
+name: Build and Publish Docker Image
 
 on:
-  release:
-    types: [released]
   workflow_dispatch:
     inputs:
-      TAG_NAME:
-        description: "Tag name"
+      tag_latest:
+        description: 'Also tag image as "latest"'
+        type: boolean
+        default: true
         required: true
 
 env:
   REGISTRY: ghcr.io
-  TAG_NAME: ${{ github.event.inputs.TAG_NAME || github.event.release.tag_name }}
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  retag-docker-image:
+  build-and-push:
     runs-on: ubuntu-latest
-    name: Push updated Docker image
+    name: Build and Push Docker Image
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+
+      - name: Extract version from StacBrowserWrapper.vue
+        id: get_version
+        run: |
+          VERSION=$(node -p "const content = fs.readFileSync('custom/StacBrowserWrapper.vue', 'utf8'); const match = content.match(/appVersion\s*\(\s*\)\s*\{\s*return\s*['\"]([^'\"]+)['\"]/); if (!match) throw new Error('Could not find appVersion'); match[1]")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
+
       - name: Set environment variables
         run: |
-          echo VERSION=${TAG_NAME#v} >> $GITHUB_ENV
-          echo IMAGE_NAME=$REGISTRY/$(echo ${GITHUB_REPOSITORY,,}) >> $GITHUB_ENV
-          echo COMMITED_AT=$(git show -s --format=%cI `git rev-parse HEAD`) >> $GITHUB_ENV
-          echo REVISION=$(git rev-parse --short HEAD) >> $GITHUB_ENV
+          # Convert GITHUB_REPOSITORY to lowercase for Docker image naming compatibility
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_NAME=${{ env.REGISTRY }}/${REPO_LOWER}" >> $GITHUB_ENV
+          echo "REVISION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      - name: Collect Docker image metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          labels: |
-            org.opencontainers.image.created=${{ env.COMMITED_AT }}
-            org.opencontainers.image.version=v${{ env.VERSION }}
-            org.opencontainers.image.maintainer=$({github.repository_owner})
-          tags: |
-            type=semver,pattern={{version}},value=v${{ env.VERSION }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-      - name: Log in to the GitHub container registry
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to the GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.repository_owner  }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Determine tags
+        id: tags
+        run: |
+          TAGS="${{ env.IMAGE_NAME }}:${{ env.VERSION }}"
+          TAGS="${TAGS},${{ env.IMAGE_NAME }}:${{ env.REVISION }}"
+          if [ "${{ github.event.inputs.tag_latest }}" = "true" ]; then
+            TAGS="${TAGS},${{ env.IMAGE_NAME }}:latest"
+          fi
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "Generated tags: ${TAGS}"
+
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          build-args: |
-            VERSION=${{ env.VERSION }}
-            REVISION=${{ env.REVISION }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:edge
-          cache-to: type=inline
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

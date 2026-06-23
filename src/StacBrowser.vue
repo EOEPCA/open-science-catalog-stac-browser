@@ -379,16 +379,11 @@ export default defineComponent({
           }
         }
 
-        if (query.external) {
-          // OSC: Hack for accessing the external functionality in a hosted bundle
-          this.$router.replace(`/external/${query.external}`);
-        } else {
-          this.$router.replace({ query }).catch(error => {
-            if (!isNavigationFailure(error, NavigationFailureType.duplicated)) {
-              throw Error(error);
-            }
-          });
-        }
+        this.$router.replace({ query }).catch(error => {
+          if (!isNavigationFailure(error, NavigationFailureType.duplicated)) {
+            throw Error(error);
+          }
+        });
       }
     },
     root(root, oldRoot) {
@@ -447,23 +442,6 @@ export default defineComponent({
     }
   },
   async created() {
-    // OSC: Notify parent portal of navigation changes
-    this.$router.beforeEach((to, _, next) => {
-      window.parent.postMessage({
-        navigate: to.path
-      }, '*');
-      next();
-    });
-
-    // OSC: Listen for data injection from parent portal
-    window.addEventListener(
-      "message",
-      (event) => {
-        this.$store.commit("force", event.data.data);
-      },
-      false,
-    );
-    
     this.colorMode = useColorMode({
       selector: 'body',
       initialValue: this.enforcedColorModeFromVueX
@@ -650,3 +628,4 @@ export default defineComponent({
 @import "./theme/page.scss";
 @import "./theme/custom.scss";
 </style>
+

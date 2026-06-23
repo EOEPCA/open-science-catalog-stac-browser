@@ -414,13 +414,6 @@ function getStore(config, router) {
           }
         }
       },
-      force(state, data) {
-        if (!data) {
-          return;
-        }
-        state.data = new STAC(data);
-        state.title = data.title;
-      },
       languages(state, {uiLanguage, dataLanguage}) {
         if (typeof uiLanguage !== 'undefined') {
           i18n.global.locale = uiLanguage;
