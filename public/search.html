@@ -253,12 +253,12 @@
     <div class="sidebar">
       <div class="sidebar-header">
         <h1>
-          Search <span class="mobile-only">OSC Products & Workflows</span>
+          Search <span class="mobile-only">Products & Workflows</span>
         </h1>
       </div>
       <eox-itemfilter id="itemfilter">
         <div slot="filterstitle">
-          <p><strong>OSC Products & Workflows</strong></p>
+          <p><strong>Products & Workflows</strong></p>
         </div>
       </eox-itemfilter>
     </div>
@@ -594,6 +594,12 @@
               dirty: false,
               state: { mode: "intersects" },
             },
+            {
+              key: "osc:type",
+              title: "Type",
+              type: "multiselect",
+              filterKeys: ["Product", "Workflow"],
+            },
           ],
         });
         itemFilterEl.classList.add("ready");
@@ -611,10 +617,26 @@
           ]);
           if (textCql) cql.push(textCql);
 
-          // Keywords Search
+          // Keywords and Type (q= parameter)
+          const qParts = [];
           const kwText = filters["keywords"]?.stringifiedState;
-          const kwCql = getCqlTextFilters(kwText, ["keywords"]);
-          if (kwCql) cql.push(kwCql);
+          if (kwText) {
+            qParts.push(kwText);
+          }
+
+          // Type Filter (Product or Workflow)
+          const typeState = filters["osc:type"]?.state || {};
+          const selectedTypes = Object.entries(typeState)
+            .filter(([_, s]) => s)
+            .map(([t, _]) => t.toLowerCase());
+
+          if (selectedTypes.length === 1) {
+            qParts.push(selectedTypes[0]);
+          }
+
+          if (qParts.length > 0) {
+            params.set("q", qParts.join(" "));
+          }
 
           // Categories (themes, variables, etc.)
           CATEGORY_CONFIG.forEach(({ key, prefix }) => {

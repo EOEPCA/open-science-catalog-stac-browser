@@ -1395,17 +1395,25 @@
 
       // Populate EOx Itemfilter properties
       itemFilterEl.filterProperties = [
+        {
+          id: "search",
+          keys: ["title", "description", "keywords"],
+          title: "Freetext search",
+          type: "text",
+          placeholder: "Search in titles, descriptions and keywords",
+          expanded: true,
+        },
         { id: "theme", key: "theme", title: "Theme" },
         { id: "variable", key: "variable", title: "Variable" },
         { id: "project", key: "project", title: "Project" },
         { id: "mission", key: "eo-mission", title: "EO Mission" },
         { id: "geometry", key: "geometry", type: "spatial", title: "Geometry" },
         {
-          id: "search",
-          keys: ["title", "themes", "variable"],
-          title: "Freetext search",
-          placeholder: "Type something...",
-          type: "text",
+          id: "osc:type",
+          key: "osc:type",
+          title: "Type",
+          type: "multiselect",
+          filterKeys: ["Product", "Workflow"],
         },
       ];
       itemFilterEl.showResults = false;
