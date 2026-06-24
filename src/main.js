@@ -36,7 +36,7 @@ init().then((appInstance) => {
           if (store._mutations && !store._mutations.force) {
             store._mutations.force = [
               (payload) => {
-                if (!payload) return;
+                if (!payload) {return;}
                 store.state.data = new STAC(payload);
                 store.state.title = payload.title;
               }

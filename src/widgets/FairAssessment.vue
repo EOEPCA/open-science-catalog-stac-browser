@@ -4,7 +4,7 @@
     <eox-chart
       :spec.prop="chartSpec"
       :dataValues.prop="chartData"
-    ></eox-chart>
+    />
   </section>
 </template>
 
@@ -60,7 +60,7 @@ export default defineComponent({
       };
 
       function prettify(str) {
-        if (!str) return "";
+        if (!str) {return "";}
         return str
           .replace(/[_-]/g, " ")
           .replace(/\b\w/g, (char) => char.toUpperCase());

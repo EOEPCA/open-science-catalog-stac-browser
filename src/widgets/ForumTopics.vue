@@ -20,7 +20,7 @@
                 v-for="(avatar, idx) in uniqueAvatars(topic.id)"
                 :key="idx"
                 :src="`${discourseRoot}${avatar.replace('{size}', '28')}`"
-              />
+              >
               {{ topicData.posts.filter((p) => p.topic_id === topic.id).length }}
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <title>message-text-outline</title>
@@ -46,9 +46,7 @@
             data['osc:type']
           )},${data.keywords?.join(',')},STAC`"
           target="_blank"
-          ><strong>Start a new topic on the EarthCODE forum</strong></a
-        >!</i
-      >
+        ><strong>Start a new topic on the EarthCODE forum</strong></a>!</i>
     </div>
   </section>
 </template>
