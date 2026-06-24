@@ -3,6 +3,8 @@ export default {
     catalogTitle: "Open Science Catalog",
     catalogTitleAfterImage: null,
     catalogImage: null,
+    apiUrl: "https://eoapi.workspace.earthcode-staging.earthcode.eox.at/stac",
+    staticEndpoint: "https://esa-earthcode.github.io/open-science-catalog-metadata/",
     allowExternalAccess: true, // Must be true if catalogUrl is not given
     allowedDomains: [],
     enforcedColorMode: "light",

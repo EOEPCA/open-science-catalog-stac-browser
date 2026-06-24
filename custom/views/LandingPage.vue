@@ -18,16 +18,9 @@ export default {
   name: "LandingPage",
   computed: {
     iframeSrc() {
-      // Resolve static metadata catalog URL (default to EarthCODE staging GitHub Page)
-      const baseUrl = CONFIG.staticEndpoint || "https://esa-earthcode.github.io/open-science-catalog-metadata/";
-      
-      // Use the config.catalogUrl as the API endpoint for static pages
-      // Fallback to the EarthCODE staging API
-      const apiUrl = CONFIG.catalogUrl || "https://eoapi.workspace.earthcode-staging.earthcode.eox.at/stac";
-
       const params = new URLSearchParams({
-        baseUrl,
-        apiUrl,
+        baseUrl: CONFIG.staticEndpoint,
+        apiUrl: CONFIG.apiUrl,
         fontUrl: `${window.location.origin}${CONFIG.pathPrefix}css/fonts/notesesabold/NotesESAbold.ttf`,
       });
 

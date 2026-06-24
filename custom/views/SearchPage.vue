@@ -23,12 +23,9 @@ export default {
   },
   computed: {
     iframeSrc() {
-      const baseUrl = CONFIG.staticEndpoint || "https://esa-earthcode.github.io/open-science-catalog-metadata/";
-      const apiUrl = CONFIG.apiUrl || "https://eoapi.workspace.earthcode-staging.earthcode.eox.at/stac";
-
       const params = new URLSearchParams({
-        baseUrl,
-        apiUrl,
+        baseUrl: CONFIG.staticEndpoint,
+        apiUrl: CONFIG.apiUrl,
         fontUrl: `${window.location.origin}${CONFIG.pathPrefix}css/fonts/notesesabold/NotesESAbold.ttf`,
       });
 

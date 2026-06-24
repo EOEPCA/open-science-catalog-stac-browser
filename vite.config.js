@@ -15,6 +15,7 @@ import { ViteEjsPlugin } from "vite-plugin-ejs";
 import { visualizer } from "rollup-plugin-visualizer";
 
 import yargs from "yargs";
+import { run as downloadCdns } from "./scripts/download-cdns.js";
 
 // Read JSON files using fs instead of require
 const configSchema = JSON.parse(
@@ -72,6 +73,9 @@ const resolveExternalConfigPath = (configFile) => {
 };
 
 export default defineConfig(async ({ mode }) => {
+  // Ensure all CDN assets are downloaded locally before Vite starts
+  await downloadCdns();
+
   const rawEnv = {
     ...loadEnv(mode, process.cwd(), ""),
     ...process.env,

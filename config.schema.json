@@ -8,6 +8,14 @@
       "type": ["string", "null"],
       "format": "uri"
     },
+    "apiUrl": {
+      "type": ["string", "null"],
+      "format": "uri"
+    },
+    "staticEndpoint": {
+      "type": ["string", "null"],
+      "format": "uri"
+    },
     "catalogTitle": {
       "type": ["string", "null"]
     },

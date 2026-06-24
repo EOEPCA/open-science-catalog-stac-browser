@@ -1,4 +1,5 @@
 import { Registry, Helper } from '@radiantearth/stac-fields';
+import config from './config.js';
 
 // For details, please consult
 // https://github.com/radiantearth/stac-browser/blob/main/docs/metadata.md
@@ -24,9 +25,20 @@ Registry.addMetadataField('contacts', {
     ext: "osc",
 });
 
+const getPathPrefix = () => {
+  let prefix = config.pathPrefix || "/";
+  if (!prefix.startsWith("/")) {
+    prefix = "/" + prefix;
+  }
+  if (!prefix.endsWith("/")) {
+    prefix = prefix + "/";
+  }
+  return prefix;
+};
+
 const formatLink = (type, value, links, jsonName) => {
   const link = links.find(link => link.rel === 'related' && link.href.includes(value));
-  return Helper.toLink(`/stac-browser/#/${type}/${value}/${jsonName}.json`, link.title.split(":")[1], "", "_self");
+  return Helper.toLink(`${getPathPrefix()}#/${type}/${value}/${jsonName}.json`, link.title.split(":")[1], "", "_self");
 }
 
 Registry.addMetadataField('osc:project', {
