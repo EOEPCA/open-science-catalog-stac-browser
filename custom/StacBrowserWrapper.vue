@@ -61,6 +61,21 @@
       <router-view />
     </main>
 
+    <!-- Cookie Banner -->
+    <div v-if="showCookieBanner" class="esa-cookie-banner">
+      We use cookies which are essential for you to access our website and/or to
+      provide you with our services, enable you to share our website content via
+      your social media accounts and allow us to measure and improve the
+      performance of our website.<br />
+      <button class="cookie-btn" @click="consentCookies('accepted')">
+        Accept all cookies
+      </button>
+      <button class="cookie-btn" @click="consentCookies('declined')">
+        Accept only essential cookies
+      </button>
+      <router-link to="/privacy-notice" class="cookie-link">See our Cookie Notice</router-link>
+    </div>
+
     <!-- Footer (Vanilla HTML/CSS) -->
     <footer class="esa-footer">
       <div class="esa-footer-container">
@@ -81,51 +96,36 @@
           </a>
         </div>
       </div>
-    </footer>
 
-    <!-- Cookie Banner -->
-    <div v-if="showCookieBanner" class="esa-cookie-banner">
-      We use cookies which are essential for you to access our website and/or to
-      provide you with our services, enable you to share our website content via
-      your social media accounts and allow us to measure and improve the
-      performance of our website.<br />
-      <button class="cookie-btn" @click="consentCookies('accepted')">
-        Accept all cookies
-      </button>
-      <button class="cookie-btn" @click="consentCookies('declined')">
-        Accept only essential cookies
-      </button>
-      <router-link to="/privacy-notice" class="cookie-link">See our Cookie Notice</router-link>
-    </div>
-
-    <!-- Suggest Changes Floating Button -->
-    <div v-if="isCatalogPage" class="suggest-changes-dial">
-      <div class="suggest-changes-menu">
-        <a
-          v-if="currentPath"
-          :href="editorUrl"
-          target="_blank"
-          class="suggest-btn btn-editor"
-        >
-          <i class="mdi mdi-pencil"></i>
-          Edit metadata
-        </a>
-        <a
-          v-if="currentPath"
-          :href="githubUrl"
-          target="_blank"
-          class="suggest-btn btn-github"
-        >
-          <i class="mdi mdi-github"></i>
-          View file on GitHub
-        </a>
+      <!-- Suggest Changes Floating Button -->
+      <div v-if="isCatalogPage" class="suggest-changes-dial">
+        <div class="suggest-changes-menu">
+          <a
+            v-if="currentPath"
+            :href="editorUrl"
+            target="_blank"
+            class="suggest-btn btn-editor"
+          >
+            <i class="mdi mdi-pencil"></i>
+            Edit metadata
+          </a>
+          <a
+            v-if="currentPath"
+            :href="githubUrl"
+            target="_blank"
+            class="suggest-btn btn-github"
+          >
+            <i class="mdi mdi-github"></i>
+            View file on GitHub
+          </a>
+        </div>
+        <button class="suggest-toggle-btn">
+          <i class="mdi mdi-pencil pencil-icon"></i>
+          <i class="mdi mdi-close close-icon"></i>
+          <span class="btn-text">Suggest changes</span>
+        </button>
       </div>
-      <button class="suggest-toggle-btn">
-        <i class="mdi mdi-pencil pencil-icon"></i>
-        <i class="mdi mdi-close close-icon"></i>
-        <span class="btn-text">Suggest changes</span>
-      </button>
-    </div>
+    </footer>
 
   </div>
 </template>
@@ -424,6 +424,7 @@ html, body {
   padding: 6px 16px;
   z-index: 99;
   font-size: 0.85rem;
+  position: relative;
 }
 
 .esa-footer-container {
@@ -512,8 +513,8 @@ html, body {
 
 /* Suggest Changes Dial */
 .suggest-changes-dial {
-  position: fixed;
-  bottom: 55px;
+  position: absolute;
+  bottom: calc(100% + 22px);
   right: 25px;
   display: flex;
   flex-direction: column;
@@ -523,15 +524,14 @@ html, body {
 }
 
 /* If the cookie banner is shown, push the floating button up so they don't overlap! */
-.esa-cookie-banner ~ .suggest-changes-dial,
-.esa-cookie-banner + .suggest-changes-dial {
-  bottom: 245px; /* Adjust bottom based on cookie banner height */
+.esa-cookie-banner ~ .esa-footer .suggest-changes-dial {
+  bottom: calc(100% + 212px); /* Adjust bottom based on cookie banner height */
 }
 
 /* On mobile, adjust floating button position if needed */
 @media (max-width: 767px) {
-  .esa-cookie-banner ~ .suggest-changes-dial {
-    bottom: 295px;
+  .esa-cookie-banner ~ .esa-footer .suggest-changes-dial {
+    bottom: calc(100% + 262px);
   }
 }
 
