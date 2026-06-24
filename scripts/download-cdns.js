@@ -73,6 +73,57 @@ function download(url, destPath) {
   });
 }
 
+const downloaded = new Set();
+
+async function downloadWithDependencies(url, dest, force) {
+  const fullDest = path.join(__dirname, "..", dest);
+  const normalizedDest = path.normalize(fullDest);
+
+  if (downloaded.has(normalizedDest)) {
+    return;
+  }
+  downloaded.add(normalizedDest);
+
+  const needsDownload = force || !fs.existsSync(normalizedDest);
+
+  if (needsDownload) {
+    console.log(`Downloading ${url} to ${dest}...`);
+    try {
+      await download(url, normalizedDest);
+      console.log(`Successfully downloaded ${dest}`);
+    } catch (err) {
+      console.error(`Error downloading ${url}:`, err);
+      throw err;
+    }
+  } else {
+    console.log(`Asset ${dest} already cached. Skipping download.`);
+  }
+
+  // Scan for relative imports if it's a JS file
+  if (dest.endsWith(".js")) {
+    let content;
+    try {
+      content = fs.readFileSync(normalizedDest, "utf-8");
+    } catch (err) {
+      console.error(`Error reading cached asset ${normalizedDest}:`, err);
+      throw err;
+    }
+
+    const matches = [];
+    const regex = /["'](\.\/[^"']+\.js)["']/g;
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+      matches.push(match[1]);
+    }
+
+    for (const relativePath of matches) {
+      const resolvedUrl = new URL(relativePath, url).toString();
+      const resolvedDest = path.join(path.dirname(dest), relativePath);
+      await downloadWithDependencies(resolvedUrl, resolvedDest, force);
+    }
+  }
+}
+
 let runningPromise = null;
 
 export function run() {
@@ -87,21 +138,13 @@ export function run() {
     }
 
     const force = process.argv.includes("--force");
+    downloaded.clear();
 
     console.log("Checking external CDN assets for local cache...");
     for (const asset of assets) {
-      const fullDest = path.join(__dirname, "..", asset.dest);
-      if (fs.existsSync(fullDest) && !force) {
-        console.log(`Asset ${asset.dest} already cached. Skipping download.`);
-        continue;
-      }
-
-      console.log(`Downloading ${asset.url} to ${asset.dest}...`);
       try {
-        await download(asset.url, fullDest);
-        console.log(`Successfully downloaded ${asset.dest}`);
+        await downloadWithDependencies(asset.url, asset.dest, force);
       } catch (err) {
-        console.error(`Error downloading ${asset.url}:`, err);
         // Clear runningPromise on failure so it can be retried
         runningPromise = null;
         process.exit(1);
