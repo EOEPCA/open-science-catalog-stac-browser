@@ -45,6 +45,7 @@ The override order for the configuration is:
 - [Basic configuration](#basic-configuration)
   - [catalogUrl](#catalogurl)
   - [catalogTitle](#catalogtitle)
+  - [catalogTitleAfterImage](#catalogtitleafterimage)
   - [catalogImage](#catalogimage)
   - [footerLinks](#footerlinks)
   - [apiCatalogPriority](#apicatalogpriority)
@@ -78,16 +79,20 @@ The override order for the configuration is:
   - [getMapSourceOptions](#getmapsourceoptions)
 - [User Interface](#user-interface)
   - [enforcedColorMode](#enforcedcolormode)
+  - [cardViewMode](#cardviewmode)
+  - [showKeywordsInItemCards](#showkeywordsinitemcards)
+  - [showKeywordsInCatalogCards](#showkeywordsincatalogcards)
+  - [defaultThumbnailSize](#defaultthumbnailsize)
+- [Metadata Retrieval](#metadata-retrieval)
   - [searchResultsPerPage](#searchresultsperpage)
   - [itemsPerPage](#itemsperpage)
   - [collectionsPerPage](#collectionsperpage)
   - [maxEntriesPerPage](#maxentriesperpage)
-  - [cardViewMode](#cardviewmode)
-  - [cardViewSort](#cardviewsort)
-  - [showKeywordsInItemCards](#showkeywordsinitemcards)
-  - [showKeywordsInCatalogCards](#showkeywordsincatalogcards)
+  - [defaultCollectionSort](#defaultcollectionsort)
+  - [defaultItemSort](#defaultitemsort)
+- [Assets](#assets)
+  - [preferredAssets](#preferredassets)
   - [showThumbnailsAsAssets](#showthumbnailsasassets)
-  - [defaultThumbnailSize](#defaultthumbnailsize)
 - [Service Integration](#service-integration)
   - [socialSharing](#socialsharing)
 - [Advanced](#advanced)
@@ -110,6 +115,16 @@ If `catalogUrl` is empty or set to `null` STAC Browser switches to a mode where 
 ### catalogTitle
 
 The default title shown if no title can be read from the root STAC catalog.
+
+### catalogTitleAfterImage
+
+A title to use in the header after the `catalogImage`.
+This can be useful in the following cases:
+
+- The image already contains the name and we do not want to show it twice
+- Removing the title in favor of the image - set this value to an empty string then.
+
+Only applies when `catalogImage` is not `null`.
 
 ### catalogImage
 
@@ -473,6 +488,25 @@ STAC Browser supports light and dark modes since v5.0.0.
 By default, this value is set to `auto`, which detects the user preference based on the system settings.
 This config option allows to enforce a specific color mode, either `light` (default before v5.0.0) or `dark`.
 
+### cardViewMode
+
+The default view mode for lists of catalogs/collections. Either `"list"` or `"cards"` (default).
+
+### showKeywordsInItemCards
+
+Enables keywords in the lists of items if set to `true`. Defaults to `false`.
+
+### showKeywordsInCatalogCards
+
+Enables keywords in the lists of catalogs/collections if set to `true`. Defaults to `false`.
+
+### defaultThumbnailSize
+
+The default size \[Height, Width\] for thumbnails which is reserved in card and list views so that the items don't jump when loading the images.
+This can be overridden per thumbnail by declaring the [`proj:shape`](https://github.com/stac-extensions/projection/#item-properties-or-asset-fields) on the asset or link.
+
+## Metadata Retrieval
+
 ### searchResultsPerPage
 
 The number of items requested and shown per page by default for search results, i.e. global item search and collection search.
@@ -505,37 +539,57 @@ This applies to the following requests:
 
 The maximum number of items per page that a user can request through the `limit` query parameter (`1000` by default).
 
-### cardViewMode
+### defaultCollectionSort
 
-The default view mode for lists of catalogs/collections. Either `"list"` or `"cards"` (default).
+The default sorting for lists of catalogs/collections.
 
-### cardViewSort
+This value must conform to the textual representation of `sortby` in STAC APIs.
 
-The default sorting for lists of catalogs/collections or items. One of:
+So if your property for sorting is "title" you have to use:
 
-- `"asc"`: ascending sort (default)
-- `"desc"`: descending sort
+- `"title"`: ascending sort (default)
+- `"-title"`: descending sort
 - `null`: sorted as in the source
 
-Doesn't apply when API search filters are applied.
-Also doesn't apply when pagination on the server-side is enabled.
+Doesn't apply when the catalog is static and not all information is loaded yet.
 
-### showKeywordsInItemCards
+### defaultItemSort
 
-Enables keywords in the lists of items if set to `true`. Defaults to `false`.
+The default sorting for lists of items.
 
-### showKeywordsInCatalogCards
+This value must conform to the textual representation of `sortby` in STAC APIs.
 
-Enables keywords in the lists of catalogs/collections if set to `true`. Defaults to `false`.
+So if your property for sorting is "datetime" you have to use:
+
+- `"properties.datetime"`: ascending sort
+- `"-properties.datetime"`: descending sort
+
+So if your property for sorting is "id" you have to use:
+
+- `"id"`: ascending sort
+- `"-id"`: descending sort
+
+Alternatively, you can use `null` to keep it sorted as in the source (default).
+
+Doesn't apply when the catalog is static and not all information is loaded yet.
+
+## Assets
+
+### preferredAssets
+
+Allows you to configure how asset alternatives should be displayed by default when a STAC Asset within an Item or Collection has multiple alternatives.
+
+The following options are supported:
+
+- `false`: The main asset is shown first, alternates are displayed as additional tabs.
+- `true` (default): HTTP(S) assets are preferred. If the main asset uses HTTP(S), it's selected by default. Otherwise, the first HTTP(S) alternative is selected.
+- `"assetKeyName"` (string): Specifies the key of the preferred asset to display by default. For example, `"s3"` would pre-select the asset with key `s3` if it exists as an alternative.
+
+This is useful when you want to automatically display a specific asset variant (e.g., the HTTPS version accessible directly through the browser) instead of the main asset.
 
 ### showThumbnailsAsAssets
 
 Defines whether thumbnails are shown in the lists of assets (`true`) or not (`false`, default).
-
-### defaultThumbnailSize
-
-The default size \[Height, Width\] for thumbnails which is reserved in card and list views so that the items don't jump when loading the images.
-This can be overridden per thumbnail by declaring the [`proj:shape`](https://github.com/stac-extensions/projection/#item-properties-or-asset-fields) on the asset or link.
 
 ## Service Integration
 
@@ -549,7 +603,6 @@ The following services are supported:
 - `bsky` (Bluesky)
 - `mastodon` (Mastodon.social)
 - `x` (X, formerly Twitter)
-
 ## Advanced
 
 ### preprocessSTAC

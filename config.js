@@ -1,6 +1,7 @@
 export default {
     catalogUrl: "https://esa-earthcode.github.io/open-science-catalog-metadata-staging/catalog.json",
     catalogTitle: "Open Science Catalog",
+    catalogTitleAfterImage: null,
     catalogImage: null,
     allowExternalAccess: true, // Must be true if catalogUrl is not given
     allowedDomains: [],
@@ -23,6 +24,7 @@ export default {
 //      "it",
 //      "it-CH",
 //      "ro",
+//      "ru",
 //      "ja",
 //      "pt",
 //      "pt-BR",
@@ -42,8 +44,11 @@ export default {
     historyMode: "hash",
     cardViewMode: "list",
     cardViewSort: "asc",
+    defaultCollectionSort: "title",
+    defaultItemSort: null,
     showKeywordsInItemCards: false,
     showKeywordsInCatalogCards: false,
+    preferredAssets: true,
     showThumbnailsAsAssets: false,
     searchResultsPerPage: null,
     itemsPerPage: null,
@@ -53,7 +58,7 @@ export default {
     crossOriginMedia: null,
     requestHeaders: {},
     requestQueryParameters: {},
-    socialSharing: [],
+    socialSharing: ['email', 'bsky', 'mastodon', 'x'],
     preprocessSTAC: (stac) => {
         if(stac.type === "Feature") {
             stac.links = stac.links.map(link => {
