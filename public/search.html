@@ -374,10 +374,17 @@
        * Renders a single collection item as an HTML string
        */
       const renderItem = (item) => {
-        let relativePath = `products/${item.id}/collection`;
+        const isWorkflow = (item.keywords || []).some(
+          (kw) => kw.toLowerCase() === "workflow"
+        );
+        let relativePath = isWorkflow
+          ? `workflows/${item.id}/record`
+          : `products/${item.id}/collection`;
         const canonicalLink = item.links?.find((l) => l.rel === "canonical");
         if (canonicalLink && canonicalLink.href) {
-          const match = canonicalLink.href.match(/\/([^\/]+\/[^\/]+\/collection)(\.json)?$/);
+          const match = canonicalLink.href.match(
+            /\/([^\/]+\/[^\/]+\/(collection|record))(\.json)?$/
+          );
           if (match) {
             relativePath = match[1];
           }
