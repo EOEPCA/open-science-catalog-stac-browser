@@ -350,6 +350,32 @@
       };
 
       /**
+       * Fetches all collections from the STAC API to extract active keywords
+       */
+      const fetchActiveKeywords = async () => {
+        const activeKeywords = new Set();
+        let url = `${API_URL}/collections?limit=1000`;
+        while (url) {
+          try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Failed to fetch collections from ${url}`);
+            const data = await response.json();
+            for (const c of data.collections || []) {
+              for (const kw of c.keywords || []) {
+                activeKeywords.add(kw);
+              }
+            }
+            const nextLink = data.links?.find((l) => l.rel === "next");
+            url = nextLink ? nextLink.href : null;
+          } catch (error) {
+            console.error("Error fetching active keywords:", error);
+            break;
+          }
+        }
+        return activeKeywords;
+      };
+
+      /**
        * Formats a date string to a human-readable format
        */
       const formatDate = (dateString) => {
@@ -545,11 +571,22 @@
         const dataPromise = Promise.all(
           CATEGORY_CONFIG.map((config) => fetchCatalogItems(config.path))
         );
+        const activeKeywordsPromise = fetchActiveKeywords();
         await customElements.whenDefined("eox-itemfilter");
 
-        const data = await dataPromise;
+        const [data, activeKeywords] = await Promise.all([
+          dataPromise,
+          activeKeywordsPromise,
+        ]);
+
         CATEGORY_CONFIG.forEach((config, i) => {
-          filterData[config.key] = data[i];
+          let items = data[i];
+          if (activeKeywords && activeKeywords.size > 0) {
+            items = items.filter((item) =>
+              activeKeywords.has(`${config.prefix}${item.id}`)
+            );
+          }
+          filterData[config.key] = items;
         });
 
         const isMobile = window.innerWidth <= 768;
