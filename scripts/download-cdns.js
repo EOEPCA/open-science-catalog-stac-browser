@@ -8,19 +8,19 @@ const __dirname = path.dirname(__filename);
 
 const assets = [
   {
-    url: "https://cdn.jsdelivr.net/npm/@eox/itemfilter@1.17.3/dist/eox-itemfilter.js",
+    url: "https://cdn.jsdelivr.net/npm/@eox/itemfilter@1.17.4/dist/eox-itemfilter.js",
     dest: "public/eox/eox-itemfilter.js",
   },
   {
-    url: "https://cdn.jsdelivr.net/npm/@eox/map@2.6.1/dist/eox-map.js",
+    url: "https://cdn.jsdelivr.net/npm/@eox/map@2.7.0/dist/eox-map.js",
     dest: "public/eox/eox-map.js",
   },
   {
-    url: "https://cdn.jsdelivr.net/npm/@eox/map@2.6.1/dist/eox-map-advanced-layers-and-sources.js",
+    url: "https://cdn.jsdelivr.net/npm/@eox/map@2.7.0/dist/eox-map-advanced-layers-and-sources.js",
     dest: "public/eox/eox-map-advanced-layers-and-sources.js",
   },
   {
-    url: "https://cdn.jsdelivr.net/npm/@eox/timecontrol@2.5.0/dist/eox-timecontrol.js",
+    url: "https://cdn.jsdelivr.net/npm/@eox/timecontrol@2.6.0/dist/eox-timecontrol.js",
     dest: "public/eox/eox-timecontrol.js",
   },
   {
