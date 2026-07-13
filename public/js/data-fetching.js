@@ -62,8 +62,9 @@ export async function fetchProducts(apiUrl) {
       };
 
       // Aggregate Theme link
+      let themeTitle = null;
       if (i["osc:theme"]) {
-        const themeTitle =
+        themeTitle =
           i["kb:theme:title"] ||
           i["osc:theme"]
             .replace(/-/g, " ")
@@ -76,15 +77,16 @@ export async function fetchProducts(apiUrl) {
         i.themes[0].concepts[0]
       ) {
         const themeId = i.themes[0].concepts[0].id;
-        const themeTitle =
+        themeTitle =
           i["kb:theme:title"] ||
           themeId.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
         addLinkIfMissing("/themes/", themeId, `Theme: ${themeTitle}`);
       }
 
       // Aggregate Project link
+      let projectTitle = null;
       if (i["osc:project"]) {
-        const projectTitle =
+        projectTitle =
           i["kb:project:title"] ||
           i["osc:project"]
             .replace(/-/g, " ")
@@ -99,23 +101,27 @@ export async function fetchProducts(apiUrl) {
       // Aggregate Variables links
       const variables =
         i["osc:variables"] || (i["osc:variable"] ? [i["osc:variable"]] : []);
+      const varTitles = [];
       variables.forEach((v) => {
         const varTitle =
           v === i["osc:variable"] && i["kb:variable:title"]
             ? i["kb:variable:title"]
             : v.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
         addLinkIfMissing("/variables/", v, `Variable: ${varTitle}`);
+        varTitles.push(varTitle);
       });
 
       // Aggregate Missions links
       const missions =
         i["osc:missions"] || (i["osc:eo-mission"] ? [i["osc:eo-mission"]] : []);
+      const missionTitles = [];
       missions.forEach((m) => {
         const missionTitle =
           m === i["osc:eo-mission"] && i["kb:eo-mission:title"]
             ? i["kb:eo-mission:title"]
             : m.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
         addLinkIfMissing("/eo-missions/", m, `EO Mission: ${missionTitle}`);
+        missionTitles.push(missionTitle);
       });
 
       // Mapping spatial bbox to custom Polygon geometries
@@ -137,21 +143,10 @@ export async function fetchProducts(apiUrl) {
       return {
         ...i,
         links: links,
-        theme:
-          i["osc:themes"] ||
-          i["osc:theme"] ||
-          (i.themes &&
-          i.themes[0] &&
-          i.themes[0].concepts &&
-          i.themes[0].concepts[0]
-            ? i.themes[0].concepts[0].id
-            : null),
-        variable:
-          i["osc:variables"] || (i["osc:variable"] ? [i["osc:variable"]] : []),
-        project: i["osc:project"],
-        "eo-mission":
-          i["osc:missions"] ||
-          (i["osc:eo-mission"] ? [i["osc:eo-mission"]] : []),
+        theme: themeTitle || i["osc:themes"] || i["osc:theme"] || null,
+        variable: varTitles.length ? varTitles : (i["osc:variables"] || (i["osc:variable"] ? [i["osc:variable"]] : [])),
+        project: projectTitle || i["osc:project"] || null,
+        "eo-mission": missionTitles.length ? missionTitles : (i["osc:missions"] || (i["osc:eo-mission"] ? [i["osc:eo-mission"]] : [])),
         region: i["osc:region"],
         geometry: geometry,
       };

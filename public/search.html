@@ -586,6 +586,11 @@
               activeKeywords.has(`${config.prefix}${item.id}`)
             );
           }
+          items.sort((a, b) => {
+            const titleA = a.title || "";
+            const titleB = b.title || "";
+            return titleA.localeCompare(titleB, "en", { sensitivity: "base" });
+          });
           filterData[config.key] = items;
         });
 
