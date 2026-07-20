@@ -31,20 +31,34 @@
               </div>
               <div class="d-flex align-items-center gap-2 text-nowrap">
                 <span class="fw-semibold text-secondary" style="font-size: 14px; white-space: nowrap;">
-                  {{ category.passed }} / {{ category.total }} ({{ category.percentage }}%)
+                  {{ category.percentage }}%
                 </span>
                 <span :style="badgeStyle(category.level)">
                   {{ category.level }}
                 </span>
                 <span class="text-muted d-flex align-items-center justify-content-center">
-                  <svg v-if="isExpanded(category.key)" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chevron"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                  <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chevron"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <svg
+                    v-if="isExpanded(category.key)" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                    viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                    class="chevron"
+                  ><polyline points="18 15 12 9 6 15" /></svg>
+                  <svg
+                    v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                    viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                    class="chevron"
+                  ><polyline points="6 9 12 15 18 9" /></svg>
                 </span>
               </div>
             </div>
             
             <!-- Expanded Checklist Body -->
             <div v-if="isExpanded(category.key)" class="card-body p-0 animate-fade">
+              <!-- Summary of passed checks -->
+              <div class="pb-2 mb-2 text-secondary" style="font-size: 0.85rem; font-weight: 500;">
+                Passed {{ category.passed }} of {{ category.total }} FAIR checks.
+              </div>
               <div 
                 v-for="metric in category.metrics" 
                 :key="metric.metric" 
@@ -151,23 +165,23 @@ export default defineComponent({
   },
   methods: {
     getFairLevel(percent) {
-      if (percent === 100) return "Advanced";
-      if (percent >= 70) return "Moderate";
-      if (percent >= 30) return "Initial";
+      if (percent === 100) {return "Advanced";}
+      if (percent >= 70) {return "Moderate";}
+      if (percent >= 30) {return "Initial";}
       return "Incomplete";
     },
     categoryColor(groupKey) {
       const groupLower = groupKey.toLowerCase();
-      if (groupLower.includes("findable")) return "#f58518";
-      if (groupLower.includes("accessible")) return "#4c78a8";
-      if (groupLower.includes("interoperable")) return "#e15759";
+      if (groupLower.includes("findable")) {return "#f58518";}
+      if (groupLower.includes("accessible")) {return "#4c78a8";}
+      if (groupLower.includes("interoperable")) {return "#e15759";}
       return "#76b7b2";
     },
     badgeStyle(level) {
       const baseStyles = {
-        padding: "4px 8px",
+        padding: "2px 6px",
         borderRadius: "4px",
-        fontSize: "0.8rem",
+        fontSize: "0.7rem",
         fontWeight: "bold",
         textTransform: "uppercase",
         letterSpacing: "0.5px",
@@ -355,6 +369,21 @@ export default defineComponent({
         },
       ];
 
+      const categoryData = [];
+      const seenGroups = new Set();
+      chartData.forEach(item => {
+        if (!seenGroups.has(item.group)) {
+          seenGroups.add(item.group);
+          const count = chartData.filter(x => x.group === item.group).length;
+          categoryData.push({
+            group: item.group,
+            groupLabel: item.groupLabel,
+            groupOrder: item.groupOrder,
+            count: count
+          });
+        }
+      });
+
       const chartSpec = {
         $schema: "https://vega.github.io/schema/vega-lite/v5.json",
         description: "FAIR Accessibility Donut Chart",
@@ -457,7 +486,7 @@ export default defineComponent({
             },
           },
           {
-            data: { name: "myData" },
+            data: { name: "categoryData" },
             mark: {
               type: "text",
               radius: 155,
@@ -467,8 +496,8 @@ export default defineComponent({
             },
             encoding: {
               theta: {
-                field: "metric",
-                aggregate: "count",
+                field: "count",
+                type: "quantitative",
                 stack: true,
               },
               text: { field: "groupLabel", type: "nominal" },
@@ -497,6 +526,7 @@ export default defineComponent({
       this.chartData = markRaw({
         myData: chartData,
         scoreData: scoreData,
+        categoryData: categoryData,
       });
       this.metricsList = chartData;
       // Start collapsed by default
@@ -516,6 +546,7 @@ eox-chart {
   max-height: 380px;
   overflow-y: auto;
   padding-right: 6px;
+  scrollbar-gutter: stable;
 }
 .fair-table::-webkit-scrollbar {
   width: 6px;
