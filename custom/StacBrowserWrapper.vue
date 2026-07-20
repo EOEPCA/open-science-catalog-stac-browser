@@ -180,7 +180,7 @@ export default {
   },
   computed: {
     appVersion() {
-      return "3.0.0-rc.6";
+      return "3.0.0-rc.7";
     },
     apiAccessUrl() {
       const apiUrl = CONFIG.apiUrl || "https://eoapi.workspace.earthcode-staging.earthcode.eox.at/stac";
