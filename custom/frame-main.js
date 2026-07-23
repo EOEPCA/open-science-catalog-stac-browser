@@ -24,11 +24,12 @@ const router = createRouter({
       name: "search",
       component: () => import("./views/SearchPage.vue")
     },
-    {
-      path: "/terms",
-      name: "terms",
-      component: () => import("./views/TermsPage.vue")
-    },
+    // TODO: correct terms page
+    // {
+    //   path: "/terms",
+    //   name: "terms",
+    //   component: () => import("./views/TermsPage.vue")
+    // },
     {
       path: "/privacy-notice",
       name: "privacy-notice",

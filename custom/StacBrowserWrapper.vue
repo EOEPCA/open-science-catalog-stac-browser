@@ -88,7 +88,8 @@
           <a href="https://www.esa.int/" target="_blank" class="esa-footer-link">ESA</a>
         </div>
         <div class="footer-center">
-          <router-link to="/terms" class="esa-footer-link">Terms & Conditions</router-link>
+          <!-- <router-link to="/terms" class="esa-footer-link">Terms & Conditions</router-link> -->
+          <a href="https://www.esa.int/Services/Terms_and_conditions" target="_blank" class="esa-footer-link">Terms & Conditions</a>
           <span class="separator">|</span>
           <router-link to="/privacy-notice" class="esa-footer-link">Privacy Notice</router-link>
         </div>
