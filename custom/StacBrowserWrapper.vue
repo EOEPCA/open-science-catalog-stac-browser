@@ -2,7 +2,7 @@
   <div id="app-shell">
     
     <!-- Top Nav Bar (Vanilla HTML/CSS) -->
-    <header class="esa-header">
+    <header class="esa-header" v-if="!isEmbed">
       <button class="menu-toggle-btn" @click="drawerOpen = !drawerOpen" aria-label="Toggle Menu">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
           <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
@@ -19,10 +19,10 @@
     </header>
 
     <!-- Drawer Overlay -->
-    <div class="esa-drawer-overlay" :class="{ 'open': drawerOpen }" @click="drawerOpen = false"></div>
+    <div v-if="!isEmbed" class="esa-drawer-overlay" :class="{ 'open': drawerOpen }" @click="drawerOpen = false"></div>
 
     <!-- Side Menu Drawer (Vanilla HTML/CSS) -->
-    <aside class="esa-drawer" :class="{ 'open': drawerOpen }">
+    <aside v-if="!isEmbed" class="esa-drawer" :class="{ 'open': drawerOpen }">
       <div class="esa-drawer-header">
         <span class="esa-drawer-title">Menu</span>
         <button class="close-drawer-btn" @click="drawerOpen = false" aria-label="Close Menu">
@@ -66,7 +66,7 @@
     </main>
 
     <!-- Cookie Banner -->
-    <div v-if="showCookieBanner" class="esa-cookie-banner">
+    <div v-if="showCookieBanner && !isEmbed" class="esa-cookie-banner">
       We use cookies which are essential for you to access our website and/or to
       provide you with our services, enable you to share our website content via
       your social media accounts and allow us to measure and improve the
@@ -81,7 +81,7 @@
     </div>
 
     <!-- Footer (Vanilla HTML/CSS) -->
-    <footer class="esa-footer">
+    <footer class="esa-footer" v-if="!isEmbed">
       <div class="esa-footer-container">
         <div class="footer-left">
           &copy; {{ new Date().getFullYear() }} by 
@@ -184,6 +184,9 @@ export default {
     }
   },
   computed: {
+    isEmbed() {
+      return this.$route.name === 'fair-preview' && this.$route.query.embed === 'true';
+    },
     appVersion() {
       return "3.0.0-rc.7";
     },
