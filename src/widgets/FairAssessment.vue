@@ -4,10 +4,24 @@
     <div class="row align-items-start">
       <!-- Left column: Donut Chart -->
       <div class="col-lg-6 col-12 d-flex justify-content-center mb-4 mb-lg-0">
-        <eox-chart
-          :spec.prop="chartSpec"
-          :dataValues.prop="chartData"
-        />
+        <div class="chart-container">
+          <eox-chart
+            :spec.prop="chartSpec"
+            :dataValues.prop="chartData"
+          />
+          <a
+            :href="fairPageUrl"
+            target="_parent"
+            class="fair-info-btn"
+            title="Learn more about FAIR principles"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="info-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </a>
+        </div>
       </div>
       
       <!-- Right column: FAIR Categories Table / Checklist Accordion -->
@@ -95,6 +109,7 @@
 <script>
 import { defineComponent, markRaw } from 'vue';
 import { mapState, mapGetters } from 'vuex';
+import CONFIG from '@/merged-config';
 
 export default defineComponent({
   data() {
@@ -108,6 +123,9 @@ export default defineComponent({
   computed: {
     ...mapState(['data']),
     ...mapGetters(['isCollection']),
+    fairPageUrl() {
+      return `${CONFIG.pathPrefix}fair`;
+    },
     hasFairAssessment() {
       if (!this.isCollection || !this.data) {
         return false;
@@ -537,6 +555,32 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.chart-container {
+  position: relative;
+  width: 380px;
+  height: 380px;
+}
+.fair-info-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background-color: rgba(0, 50, 71, 0.08);
+  color: #003247;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 20;
+}
+.fair-info-btn:hover {
+  background-color: #003247;
+  color: #ffffff;
+  transform: scale(1.1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
 eox-chart {
   width: 380px;
   height: 380px;

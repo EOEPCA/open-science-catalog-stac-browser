@@ -48,6 +48,10 @@
           <i class="mdi mdi-magnify esa-nav-icon"></i>
           Search
         </router-link>
+        <router-link to="/fair" class="nav-item" @click="drawerOpen = false">
+          <i class="mdi mdi-information-outline esa-nav-icon"></i>
+          FAIR Principles
+        </router-link>
         <a :href="apiAccessUrl" target="_blank" class="nav-item" @click="drawerOpen = false">
           <i class="mdi mdi-xml esa-nav-icon"></i>
           API Access

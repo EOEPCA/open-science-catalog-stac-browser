@@ -34,6 +34,11 @@ const router = createRouter({
       name: "privacy-notice",
       component: () => import("./views/PrivacyNoticePage.vue")
     },
+    {
+      path: "/fair",
+      name: "fair",
+      component: () => import("./views/FairPage.vue")
+    },
     // Global catch-all route for any STAC Catalog browsing paths
     // e.g. /catalog, /projects/catalog, /collections/..., etc.
     {
