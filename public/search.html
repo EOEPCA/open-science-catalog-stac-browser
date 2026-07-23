@@ -666,11 +666,10 @@
           ]);
           if (textCql) cql.push(textCql);
 
-          // Keywords and Type (q= parameter)
-          const qParts = [];
+          // Keywords Filter
           const kwText = filters["keywords"]?.stringifiedState;
           if (kwText) {
-            qParts.push(kwText);
+            cql.push(`keywords LIKE '%${kwText}%'`);
           }
 
           // Type Filter (Product or Workflow)
@@ -680,11 +679,7 @@
             .map(([t, _]) => t.toLowerCase());
 
           if (selectedTypes.length === 1) {
-            qParts.push(selectedTypes[0]);
-          }
-
-          if (qParts.length > 0) {
-            params.set("q", qParts.join(" "));
+            cql.push(`keywords LIKE '%${selectedTypes[0]}%'`);
           }
 
           // Categories (themes, variables, etc.)

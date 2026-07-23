@@ -42,7 +42,7 @@ export async function fetchProducts(apiUrl) {
 
   // Preprocessing and formatting
   const parsedProducts = items
-    .filter((i) => i["osc:type"] === "product")
+    .filter((i) => i["osc:type"] === "product" || i["osc:type"] === "workflow")
     .map((i) => {
       // Replicate the links structure expected by createMetrics for collections that don't have them
       const links = i.links ? [...i.links] : [];
@@ -142,6 +142,7 @@ export async function fetchProducts(apiUrl) {
 
       return {
         ...i,
+        "osc:type": i["osc:type"] ? (i["osc:type"].charAt(0).toUpperCase() + i["osc:type"].slice(1)) : null,
         links: links,
         theme: themeTitle || i["osc:themes"] || i["osc:theme"] || null,
         variable: varTitles.length ? varTitles : (i["osc:variables"] || (i["osc:variable"] ? [i["osc:variable"]] : [])),
