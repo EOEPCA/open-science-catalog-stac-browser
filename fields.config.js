@@ -12,7 +12,7 @@ import config from './config.js';
 //     formatter: value => value ? "Public" : "Private"
 // });
 
-Registry.addExtension('osc', 'Open Science Catalog');
+Registry.addExtension('osc', 'Open Science Catalogue');
 
 Registry.addMetadataField('themes', {
     label: "Themes",

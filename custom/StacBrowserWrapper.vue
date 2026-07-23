@@ -8,7 +8,7 @@
           <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
         </svg>
       </button>
-      <router-link to="/" class="esa-brand">Open Science Catalog</router-link>
+      <router-link to="/" class="esa-brand">Open Science Catalogue</router-link>
       
       <!-- Right-aligned ESA Logo -->
       <div class="esa-header-logo">
@@ -38,7 +38,7 @@
         </router-link>
         <router-link to="/catalog" class="nav-item" @click="drawerOpen = false">
           <i class="mdi mdi-compass esa-nav-icon"></i>
-          Catalog
+          Catalogue
         </router-link>
         <router-link to="/metrics" class="nav-item" @click="drawerOpen = false">
           <i class="mdi mdi-poll esa-nav-icon"></i>

@@ -1,6 +1,6 @@
-# Open Science Catalog (OSC) STAC Browser - Guide for Coding Agents
+# Open Science Catalogue (OSC) STAC Browser - Guide for Coding Agents
 
-This repository is a customized fork of [`radiantearth/stac-browser`](https://github.com/radiantearth/stac-browser) tailored for the European Space Agency's (ESA) **Open Science Catalog (OSC)**. 
+This repository is a customized fork of [`radiantearth/stac-browser`](https://github.com/radiantearth/stac-browser) tailored for the European Space Agency's (ESA) **Open Science Catalogue (OSC)**. 
 
 To maintain effortless upgradeability against the upstream repository, this fork is designed with a **"Zero-Touch Core"** principle. The core STAC Browser source files are kept completely vanilla, with customizations implemented using official STAC Browser extension points, configurations, and a clever iframe-based layout isolation wrapper.
 

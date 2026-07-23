@@ -1,6 +1,6 @@
 export default {
     catalogUrl: "https://esa-earthcode.github.io/open-science-catalog-metadata-staging/catalog.json",
-    catalogTitle: "Open Science Catalog",
+    catalogTitle: "Open Science Catalogue",
     catalogTitleAfterImage: null,
     catalogImage: null,
     apiUrl: "https://eoapi.workspace.earthcode-staging.earthcode.eox.at/stac",
