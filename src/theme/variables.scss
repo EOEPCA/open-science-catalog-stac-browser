@@ -107,6 +107,7 @@ $link-hover-color: darken($link-color, 15%);
 
 // Main/top header of the website
 $header: $light;
+$header-background: none;
 $header-position: sticky; // sticky or static
 $header-font-size: 1.5rem;
 $header-font-weight: 600;
