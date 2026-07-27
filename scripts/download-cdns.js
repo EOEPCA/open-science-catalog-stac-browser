@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const assets = [
   {
-    url: "https://cdn.jsdelivr.net/npm/@eox/itemfilter@1.17.4/dist/eox-itemfilter.js",
+    url: "https://cdn.jsdelivr.net/npm/@eox/itemfilter@1.17.5/dist/eox-itemfilter.js",
     dest: "public/eox/eox-itemfilter.js",
   },
   {
