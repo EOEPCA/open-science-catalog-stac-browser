@@ -106,14 +106,14 @@ $link-hover-color: darken($link-color, 15%);
 @import 'bootstrap/scss/_variables';
 
 // Main/top header of the website
-$header: $primary;
+$header: $light;
 $header-position: sticky; // sticky or static
 $header-font-size: 1.5rem;
 $header-font-weight: 600;
-$header-text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+$header-text-shadow: none;
 
 $header-contrast: color-contrast($header);
-$header-color: tint-color($header, 80%); // Use shade-color if your header has a bright color
+$header-color: shade-color($header, 80%); // Use shade-color if your header has a bright color
 $header-hover-color: $header-contrast;
 
 $header-button-background: transparent;
