@@ -89,8 +89,7 @@
       "noEnv": true
     },
     "pathPrefix": {
-      "type": ["string"],
-      "buildOnly": true
+      "type": ["string"]
     },
     "historyMode": {
       "type": ["string"],

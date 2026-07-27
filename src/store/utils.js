@@ -1,5 +1,4 @@
 import axios from "axios";
-import { markRaw } from 'vue';
 import { hasText, isObject, size } from 'stac-js/src/utils.js';
 import i18n from '../i18n';
 
@@ -57,13 +56,6 @@ export async function stacRequest(cx, link, axiosOptions = {}) {
   return await axios(Object.assign(options, axiosOptions));
 }
 
-export function processSTAC(state, stac) {
-  if (typeof state.preprocessSTAC === 'function') {
-    stac = state.preprocessSTAC(stac, state);
-  }
-  return markRaw(stac);
-}
-
 export function isAuthenticationError(error) {
   return [401, 403].includes(error?.response?.status);
 }
@@ -119,7 +111,7 @@ export function getErrorMessage(error) {
 }
 
 export function addQueryIfNotExists(uri, query) {
-  if (size(query) == 0) {
+  if (size(query) === 0) {
     return uri;
   }
   for (let key in query) {
