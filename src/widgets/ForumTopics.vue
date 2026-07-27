@@ -7,6 +7,7 @@
           <a
             :href="`${discourseRoot}/t/${topic.slug}`"
             target="_blank"
+            rel="noopener noreferrer"
           >
             <span class="title">{{ topic.unicode_title || topic.title }}</span>
             <span class="excerpt">{{
@@ -46,6 +47,7 @@
             data['osc:type']
           )},${data.keywords?.join(',')},STAC`"
           target="_blank"
+          rel="noopener noreferrer"
         ><strong>Start a new topic on the EarthCODE forum</strong></a>!</i>
     </div>
   </section>
@@ -57,6 +59,7 @@ import { mapState, mapGetters } from 'vuex';
 import { discourseRoot } from "../custom";
 
 export default defineComponent({
+  name: 'ForumTopics',
   data() {
     return {
       discourseRoot,

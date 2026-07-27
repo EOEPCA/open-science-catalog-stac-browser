@@ -15,10 +15,14 @@
             class="fair-info-btn"
             title="Learn more about FAIR principles"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="info-icon">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="16" x2="12" y2="12"></line>
-              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            <svg
+              xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="info-icon"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
           </a>
         </div>
@@ -30,8 +34,8 @@
           <div 
             v-for="category in categories" 
             :key="category.key" 
-            class="card mb-3"
-            :style="{ borderLeft: `4px solid ${categoryColor(category.key)} !important`, paddingLeft: '12px', borderRadius: '0px !important' }"
+            class="card mb-3 category-card"
+            :style="{ borderLeftColor: categoryColor(category.key) }"
           >
             <!-- Summary Row Header -->
             <div 
@@ -39,12 +43,12 @@
               @click="toggleGroup(category.key)"
             >
               <div class="d-flex align-items-center">
-                <span class="fw-bold me-2" :style="{ fontSize: '16px !important', color: categoryColor(category.key) }">
+                <span class="fw-bold me-2 category-title" :style="{ color: categoryColor(category.key) }">
                   {{ category.name }}
                 </span>
               </div>
               <div class="d-flex align-items-center gap-2 text-nowrap">
-                <span class="fw-semibold text-secondary" style="font-size: 14px; white-space: nowrap;">
+                <span class="fw-semibold text-secondary category-percentage">
                   {{ category.percentage }}%
                 </span>
                 <span :style="badgeStyle(category.level)">
@@ -70,17 +74,16 @@
             <!-- Expanded Checklist Body -->
             <div v-if="isExpanded(category.key)" class="card-body p-0 animate-fade">
               <!-- Summary of passed checks -->
-              <div class="pb-2 mb-2 text-secondary" style="font-size: 0.85rem; font-weight: 500;">
+              <div class="pb-2 mb-2 text-secondary category-summary">
                 Passed {{ category.passed }} of {{ category.total }} FAIR checks.
               </div>
               <div 
                 v-for="metric in category.metrics" 
                 :key="metric.metric" 
-                class="py-2.5 px-0 d-flex align-items-start border-bottom last-border-none"
-                style="border-bottom: 1px solid rgba(0,0,0,0.06) !important;"
+                class="py-2.5 px-0 d-flex align-items-start metric-row"
               >
                 <!-- Pass/Fail Checklist Icon -->
-                <div class="me-3 mt-1 d-flex align-items-center justify-content-center" style="width: 20px;">
+                <div class="me-3 mt-1 d-flex align-items-center justify-content-center metric-icon-container">
                   <span v-if="metric.score === 1" class="text-success fw-bold fs-5" title="Passed">
                     ✓
                   </span>
@@ -90,10 +93,10 @@
                 </div>
                 <!-- Metric Label & Description -->
                 <div class="flex-grow-1">
-                  <div class="fw-bold text-dark mb-0.5" style="font-size: 0.95rem;">
+                  <div class="fw-bold text-dark mb-0.5 metric-label">
                     {{ metric.metricLabel }}
                   </div>
-                  <div class="text-secondary" style="font-size: 0.85rem; line-height: 1.4;">
+                  <div class="text-secondary metric-description">
                     {{ metric.description }}
                   </div>
                 </div>
@@ -112,6 +115,7 @@ import { mapState, mapGetters } from 'vuex';
 import CONFIG from '@/merged-config';
 
 export default defineComponent({
+  name: 'FairAssessment',
   data() {
     return {
       chartSpec: null,
@@ -609,6 +613,38 @@ eox-chart {
   border: none !important;
   box-shadow: none !important;
   background: transparent !important;
+}
+.category-card {
+  border-left: 4px solid !important;
+  padding-left: 12px;
+  border-radius: 0 !important;
+}
+.category-title {
+  font-size: 16px !important;
+}
+.category-percentage {
+  font-size: 14px;
+  white-space: nowrap;
+}
+.category-summary {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.metric-row {
+  border-bottom: 1px solid rgba(0,0,0,0.06) !important;
+}
+.metric-row:last-child {
+  border-bottom: none !important;
+}
+.metric-icon-container {
+  width: 20px;
+}
+.metric-label {
+  font-size: 0.95rem;
+}
+.metric-description {
+  font-size: 0.85rem;
+  line-height: 1.4;
 }
 .fair-table .card-header {
   background: #ffffff !important;
