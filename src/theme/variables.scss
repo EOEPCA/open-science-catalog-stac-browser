@@ -43,10 +43,10 @@ $grid-breakpoints: (
 
 @font-face {
   font-family: "NotesESAbold";
-  src: url("https://opensciencedata.esa.int/css/fonts/notesesabold/NotesESAbold.eot");
-  src: url("https://opensciencedata.esa.int/css/fonts/notesesabold/NotesESAbold.woff") format("woff"),
-    url("https://opensciencedata.esa.int/css/fonts/notesesabold/NotesESAbold.ttf") format("truetype"),
-    url("https://opensciencedata.esa.int/css/fonts/notesesabold/NotesESAbold.svg") format("svg");
+  src: url("/css/fonts/notesesabold/NotesESAbold.eot");
+  src: url("/css/fonts/notesesabold/NotesESAbold.woff") format("woff"),
+    url("/css/fonts/notesesabold/NotesESAbold.ttf") format("truetype"),
+    url("/css/fonts/notesesabold/NotesESAbold.svg") format("svg");
   font-weight: normal;
   font-style: normal;
 }
