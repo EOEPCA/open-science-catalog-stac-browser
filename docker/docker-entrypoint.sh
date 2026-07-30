@@ -87,10 +87,11 @@ envsubst '$STAC_PATH_PREFIX $STAC_PREFIX_REDIRECT' \
     < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
 
 # Point <base> at the runtime path prefix (Vite builds with base "./").
-if [ -f /usr/share/nginx/html/index.html ]; then
-    sed -i "s|<base href=\"[^\"]*\" id=\"stac-browser-base\">|<base href=\"${STAC_PATH_PREFIX}\" id=\"stac-browser-base\">|" \
-        /usr/share/nginx/html/index.html
-fi
+for file in /usr/share/nginx/html/*.html; do
+    if [ -f "$file" ]; then
+        sed -i "s|<base href=\"[^\"]*\" id=\"stac-browser-base\">|<base href=\"${STAC_PATH_PREFIX}\" id=\"stac-browser-base\">|" "$file"
+    fi
+done
 
 config_schema=$(cat /etc/nginx/conf.d/config.schema.json)
 runtime_config_tmp=/usr/share/nginx/html/runtime-config.js.tmp
