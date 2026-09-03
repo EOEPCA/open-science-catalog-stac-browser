@@ -1,4 +1,5 @@
 import { Registry, Helper } from '@radiantearth/stac-fields';
+import config from './config.js';
 
 // For details, please consult
 // https://github.com/radiantearth/stac-browser/blob/main/docs/metadata.md
@@ -11,12 +12,40 @@ import { Registry, Helper } from '@radiantearth/stac-fields';
 //     formatter: value => value ? "Public" : "Private"
 // });
 
-Registry.addExtension('osc', 'Open Science Catalog');
+Registry.addExtension('osc', 'Open Science Catalogue');
 
 Registry.addMetadataField('themes', {
     label: "Themes",
     ext: "osc", 
-    formatter: value => Helper.toList(value.find(v => v.scheme === "OSC:SCHEME:THEMES").concepts, true, (i) => i.id, false)
+    formatter: value => {
+      if (!value) {
+        return "";
+      }
+      const formatConcept = (i) => {
+        if (!i) return "";
+        if (typeof i === 'object') {
+          return i.id || i.title || JSON.stringify(i);
+        }
+        return i;
+      };
+      if (Array.isArray(value)) {
+        const oscThemeObj = value.find(v => v && v.scheme === "OSC:SCHEME:THEMES");
+        if (oscThemeObj && Array.isArray(oscThemeObj.concepts)) {
+          return Helper.toList(oscThemeObj.concepts, true, formatConcept, false);
+        }
+        const themeWithConcepts = value.find(v => v && Array.isArray(v.concepts));
+        if (themeWithConcepts) {
+          return Helper.toList(themeWithConcepts.concepts, true, formatConcept, false);
+        }
+        return Helper.toList(value, true, formatConcept, false);
+      } else if (typeof value === 'object') {
+        if (Array.isArray(value.concepts)) {
+          return Helper.toList(value.concepts, true, formatConcept, false);
+        }
+        return formatConcept(value);
+      }
+      return String(value);
+    }
   });
 
 Registry.addMetadataField('contacts', {
@@ -24,9 +53,25 @@ Registry.addMetadataField('contacts', {
     ext: "osc",
 });
 
+const getPathPrefix = () => {
+  let prefix = config.pathPrefix || "/";
+  if (!prefix.startsWith("/")) {
+    prefix = "/" + prefix;
+  }
+  if (!prefix.endsWith("/")) {
+    prefix = prefix + "/";
+  }
+  return prefix;
+};
+
 const formatLink = (type, value, links, jsonName) => {
-  const link = links.find(link => link.rel === 'related' && link.href.includes(value));
-  return Helper.toLink(`/stac-browser/#/${type}/${value}/${jsonName}.json`, link.title.split(":")[1], "", "_self");
+  const link = links && Array.isArray(links) ? links.find(link => link.rel === 'related' && link.href && link.href.includes(value)) : null;
+  if (!link || !link.title) {
+    return value;
+  }
+  const parts = link.title.split(":");
+  const title = parts.length > 1 ? parts[1].trim() : link.title;
+  return Helper.toLink(`${getPathPrefix()}#/${type}/${value}/${jsonName}.json`, title, "", "_self");
 }
 
 Registry.addMetadataField('osc:project', {

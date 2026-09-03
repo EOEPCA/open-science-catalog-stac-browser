@@ -6,7 +6,7 @@
       <b-col class="left">
         <WidgetHook id="view-search-filters-start" />
         <b-tabs v-model="activeSearch">
-          <b-tab v-if="collectionSearch" :title="$t('search.tabs.collections')" id="search-collections-tab">
+          <b-tab v-if="collectionSearch" :title="$t('search.tabs.collections')" :id="tabIds.collections">
             <WidgetHook id="view-search-filters-collections-start" />
             <SearchFilter
               :parent="parent" title="" :value="collectionFilters" type="Collections"
@@ -14,7 +14,7 @@
             />
             <WidgetHook id="view-search-filters-collections-end" />
           </b-tab>
-          <b-tab v-if="itemSearch" :title="$t('search.tabs.items')" id="search-items-tab">
+          <b-tab v-if="itemSearch" :title="$t('search.tabs.items')" :id="tabIds.items">
             <WidgetHook id="view-search-filters-items-start" />
             <SearchFilter
               :parent="parent" title="" :value="itemFilters" type="Global"
@@ -34,8 +34,8 @@
         <b-alert v-else-if="results.length === 0" variant="warning" show>{{ $t('search.noItemsFound') }}</b-alert>
         <template v-else>
           <WidgetHook id="view-search-results-start" />
-          <div id="search-map" v-if="resultCollection">
-            <MapView :stac="parent" :children="resultCollection" onfocusOnly popover />
+          <div id="search-map" v-if="data">
+            <MapView :stac="parent" :children="data" onfocusOnly popover />
           </div>
           <Catalogs
             v-if="isCollectionSearch" :catalogs="results" collectionsOnly
@@ -74,15 +74,14 @@
 
 <script>
 import Utils from '../utils';
-import { toAbsolute } from 'stac-js/src/http.js';
 import { isObject, size } from 'stac-js/src/utils.js';
 import SearchFilter from '../components/SearchFilter.vue';
 import Loading from '../components/Loading.vue';
 import ErrorAlert from '../components/ErrorAlert.vue';
-import { getDisplayTitle, createSTAC, CollectionCollection, ItemCollection } from '../models/stac';
+import { getDisplayTitle, createSTAC } from '../models/stac';
 import { STAC } from 'stac-js';
 import { defineComponent, defineAsyncComponent } from 'vue';
-import { getErrorCode, getErrorMessage, processSTAC, stacRequest } from '../store/utils';
+import { getErrorCode, getErrorMessage } from '../store/utils';
 import { mapGetters, mapState } from "vuex";
 import { BTab, BTabs } from 'bootstrap-vue-next';
 
@@ -116,17 +115,21 @@ export default defineComponent({
       itemFilters: {},
       collectionFilters: {},
       activeSearch: undefined,
-      selectedCollections: {}
+      selectedCollections: {},
+      tabIds: {
+        collections: 'search-collections-tab',
+        items: 'search-items-tab'
+      }
     };
   },
   computed: {
-    ...mapState(['catalogUrl', 'catalogTitle', 'searchResultsPerPage', 'itemsPerPage', 'collectionsPerPage']),
-    ...mapGetters(['canSearchItems', 'canSearchCollections', 'getStac', 'root', 'collectionLink', 'parentLink', 'fromBrowserPath', 'toBrowserPath']),
+    ...mapState(['catalogUrl', 'catalogTitle', 'searchResultsPerPage', 'stateQueryParameters']),
+    ...mapGetters(['canSearchItems', 'canSearchCollections', 'getStac', 'root', 'collectionLink', 'parentLink', 'fromBrowserPath']),
     selectedCollectionCount() {
       return size(this.selectedCollections);
     },
     totalCount() {
-      if (typeof this.data.numberMatched === 'number') {
+      if (typeof this.data?.numberMatched === 'number') {
         return this.data.numberMatched;
       }
       return null;
@@ -143,54 +146,11 @@ export default defineComponent({
     itemSearch() {
       return this.canSearchItems && this.parent && this.parent.getSearchLink();
     },
-    resultCollection() {
-      if (this.isCollectionSearch) {
-        return new CollectionCollection({
-          collections: this.results,
-          links: []
-        });
-      }
-      else {
-        return new ItemCollection({
-          type: 'FeatureCollection',
-          features: this.results,
-          links: []
-        });
-      }
-    },
     results() {
-      if (size(this.data) === 0) {
-        return [];
-      }
-      let list = this.isCollectionSearch ? this.data.collections : this.data.features;
-      let type = this.isCollectionSearch ? 'Collection' : 'Feature';
-      if (!Array.isArray(list)) {
-        return [];
-      }
-      // todo: use itemcollection class
-      return list
-        .map(obj => {
-          try {
-            if (!isObject(obj) || obj.type !== type) {
-              return null;
-            }
-            let selfLink = Utils.getLinkWithRel(obj.links, 'self');
-            let url;
-            if (selfLink?.href) {
-              url = toAbsolute(selfLink.href, this.link.href);
-            }
-            let stac = createSTAC(obj, url, this.toBrowserPath(url));
-            stac = processSTAC(this.$store.state, stac);
-            return stac;
-          } catch (error) {
-            console.error(error);
-            return null;
-          }
-        })
-        .filter(obj => obj instanceof STAC);
+      return this.data?.getAll() || [];
     },
     pagination() {
-      return Utils.getPaginationLinks(this.data);
+      return this.data?.getPaginationLinks() || {};
     },
     filters() {
       return this.isCollectionSearch ? this.collectionFilters : this.itemFilters;
@@ -211,8 +171,27 @@ export default defineComponent({
     }
   },
   watch:{
-    activeSearch() {
+    'stateQueryParameters.searchtype': {
+      immediate: true,
+      handler(searchType) {
+        if (searchType && this.tabIds[searchType]) {
+          this.activeSearch = this.tabIds[searchType];
+        }
+      }
+    },
+    'stateQueryParameters.q': {
+      handler(q) {
+        this.updateFreeText(q, true);
+      }
+    },
+    activeSearch(tab) {
+      // Reset search results when switching tabs
       this.data = null;
+      // Update the search type (collections/items) in the URL
+      const tabId = Object.entries(this.tabIds).find(([, value]) => value === tab);
+      if (tabId) {
+        this.$store.commit('updateState', {type: 'searchtype', value: tabId[0]});
+      }
     },
     searchLink: {
       immediate: true,
@@ -240,11 +219,20 @@ export default defineComponent({
       this.parent = this.getStac(url);
       this.showPage();
     }
+
+    // We had this initially in a watcher with immediate: true, but this was executed too early.
+    // Thus we only apply it once when creating the component and then on any subsequent change.
+    this.updateFreeText(this.stateQueryParameters.q);
   },
   methods: {
+    updateFreeText(q, force = false) {
+      if (Array.isArray(q) && (force || size(q) > 0)) {
+        this.setFilters({ q });
+      }
+    },
     openItemSearch() {
       this.itemFilters.collections = Object.keys(this.selectedCollections);
-      this.activeSearch = 'search-items-tab';
+      this.activeSearch = this.tabIds.items;
       this.selectedCollections = {};
     },
     selectForItemSearch(collection) {
@@ -265,24 +253,27 @@ export default defineComponent({
       this.error = null;
       this.errorId = null;
       this.loading = true;
+
       try {
         this.link = Utils.addFiltersToLink(link, this.filters, this.searchResultsPerPage);
-
-        const key = this.isCollectionSearch ? 'collections' : 'features';
-        const response = await stacRequest(this.$store, this.link);
+      
+        const response = await this.$store.dispatch('request', { link: this.link });
         if (response) {
           this.showPage(response.config.url);
         }
+
+        const key = this.isCollectionSearch ? 'collections' : 'features';
         if (!isObject(response.data) || !Array.isArray(response.data[key])) {
-          this.data = {};
+          this.data = null;
           this.error = this.$t(this.isCollectionSearch ? 'errors.invalidStacCollections' : 'errors.invalidStacItems');
         }
         else {
           const url = this.link.getAbsoluteUrl();
-          this.data = createSTAC(response.data, url, this.toBrowserPath(url));
+          const data = createSTAC(response.data, url, this.$store);
+          this.data = data;
         }
       } catch (error) {
-        this.data = {};
+        this.data = null;
         this.error = getErrorMessage(error);
         this.errorId = getErrorCode(error);
       } finally {
@@ -299,7 +290,7 @@ export default defineComponent({
       if (reset) {
         this.data = null;
       }
-      else {
+      else if (this.searchLink) {
         await this.loadResults(this.searchLink);
       }
     },

@@ -37,3 +37,6 @@ pnpm-debug.log*
 
 # integration test outputs
 /tests/integration/generated/
+
+# EOx assets downloaded at build time
+public/eox/

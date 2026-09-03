@@ -1,7 +1,10 @@
 export default {
-    catalogUrl: null,
-    catalogTitle: "Open Science Catalog",
+    catalogUrl: "https://esa-earthcode.github.io/open-science-catalog-metadata-staging/catalog.json",
+    catalogTitle: "Open Science Catalogue",
+    catalogTitleAfterImage: null,
     catalogImage: null,
+    apiUrl: "https://eoapi.workspace.earthcode-staging.earthcode.eox.at/stac",
+    staticEndpoint: "https://esa-earthcode.github.io/open-science-catalog-metadata/",
     allowExternalAccess: true, // Must be true if catalogUrl is not given
     allowedDomains: [],
     enforcedColorMode: "light",
@@ -23,6 +26,7 @@ export default {
 //      "it",
 //      "it-CH",
 //      "ro",
+//      "ru",
 //      "ja",
 //      "pt",
 //      "pt-BR",
@@ -38,12 +42,15 @@ export default {
     displayOverviewsForChildren: false,
     buildTileUrlTemplate: null,
     getMapSourceOptions: null,
-    pathPrefix: "/stac-browser/",
+    pathPrefix: "/",
     historyMode: "hash",
     cardViewMode: "list",
     cardViewSort: "asc",
+    defaultCollectionSort: "title",
+    defaultItemSort: null,
     showKeywordsInItemCards: false,
     showKeywordsInCatalogCards: false,
+    preferredAssets: true,
     showThumbnailsAsAssets: false,
     searchResultsPerPage: null,
     itemsPerPage: null,
@@ -53,7 +60,7 @@ export default {
     crossOriginMedia: null,
     requestHeaders: {},
     requestQueryParameters: {},
-    socialSharing: [],
+    socialSharing: ['email', 'bsky', 'mastodon', 'x'],
     preprocessSTAC: (stac) => {
         if(stac.type === "Feature") {
             stac.links = stac.links.map(link => {

@@ -6,35 +6,31 @@
     <ErrorAlert v-if="globalError" dismissible class="global-error" v-bind="globalError" @close="hideError" />
     <Sidebar v-if="sidebar !== null" v-model="sidebar" />
     <!-- Header -->
-    <header>
+    <header ref="header" :class="{ scrolled }">
       <b-row class="site">
         <b-col md="12">
           <nav class="actions navigation">
             <b-button-group v-if="canSearch || !isServerSelector">
-              <b-button v-if="!isServerSelector" variant="primary" :title="$t('browse')" @click="sidebar = !sidebar">
+              <b-button v-if="!isServerSelector" variant="header" :title="$t('browse')" @click="sidebar = !sidebar">
                 <b-icon-list /><span class="button-label">{{ $t('browse') }}</span>
               </b-button>
-              <b-button v-if="canSearch" variant="primary" :to="searchBrowserLink" :title="$t('search.title')" :pressed="isSearchPage">
+              <b-button v-if="canSearch" variant="header" :to="searchBrowserLink" :title="$t('search.title')" :pressed="isSearchPage">
                 <b-icon-search /><span class="button-label">{{ $t('search.title') }}</span>
+              </b-button>
+              <b-button v-if="root" variant="header" id="popover-root-btn" tabindex="0">
+                <b-icon-database /><span class="button-label">{{ serviceType }}</span>
               </b-button>
             </b-button-group>
           </nav>
           <div class="title">
-            <img v-if="logo" :src="logo.getAbsoluteUrl()" :alt="logo.title" :title="logo.title" class="logo">
-            <span role="banner">
-              <StacLink v-if="root" :data="root" hideIcon />
-              <template v-else>{{ catalogTitle }}</template>
-            </span>
-            <b-button
-              v-if="root" size="sm" variant="outline-primary" id="popover-root-btn"
-              :title="serviceType" tag="a" tabindex="0"
-            >
-              <b-icon-caret-down-fill />
-            </b-button>
+            <StacLink v-if="root" :data="root">
+              <HeaderTitle ref="headerTitle" />
+            </StacLink>
+            <HeaderTitle v-else ref="headerTitle" />
           </div>
           <nav class="actions user">
             <b-button-group>
-              <b-button v-if="canAuthenticate" variant="primary" @click="logInOut" :title="authTitle">
+              <b-button v-if="canAuthenticate" variant="header" @click="logInOut" :title="authTitle">
                 <component :is="authIcon" /><span class="button-label">{{ authLabel }}</span>
               </b-button>
               <LanguageChooser
@@ -44,7 +40,7 @@
               />
               <b-button
                 v-if="!enforcedColorModeFromVueX || enforcedColorModeFromVueX === 'auto'"
-                variant="primary"
+                variant="header"
                 @click="toggleColorMode"
               >
                 <b-icon-sun v-if="colorMode === 'light'" :title="$t('switchToDarkMode')" />
@@ -65,10 +61,10 @@
               <b-button v-if="back" :to="selfBrowserLink" :title="$t('goBack.description', {type})" variant="outline-primary" size="sm">
                 <b-icon-arrow-left /><span class="button-label">{{ $t('goBack.label') }}</span>
               </b-button>
-              <b-button v-if="collectionLink" :to="toBrowserPath(collectionLink.href)" :title="collectionLinkTitle" variant="outline-primary" size="sm">
+              <b-button v-if="collectionLink" :to="toBrowserPath(collectionLink)" :title="collectionLinkTitle" variant="outline-primary" size="sm">
                 <b-icon-folder-symlink /><span class="button-label">{{ $t('goToCollection.label') }}</span>
               </b-button>
-              <b-button v-if="parentLink" :to="toBrowserPath(parentLink.href)" :title="parentLinkTitle" variant="outline-primary" size="sm">
+              <b-button v-if="parentLink" :to="toBrowserPath(parentLink)" :title="parentLinkTitle" variant="outline-primary" size="sm">
                 <b-icon-arrow-90deg-up /><span class="button-label">{{ $t('goToParent.label') }}</span>
               </b-button>
             </b-button-group>
@@ -85,19 +81,19 @@
       <WidgetHook id="footer-start" />
       <ul v-if="Array.isArray(footerLinksFromVueX) && footerLinksFromVueX.length > 0" class="footer-links text-body-secondary">
         <li v-for="link in footerLinksFromVueX" :key="link.url">
-          <a :href="link.url" target="_blank">{{ $te(`footerLinks.${link.label}`) ? $t(`footerLinks.${link.label}`) : link.label }}</a>
+          <a :href="link.url" target="_blank" rel="noopener noreferrer">{{ $te(`footerLinks.${link.label}`) ? $t(`footerLinks.${link.label}`) : link.label }}</a>
         </li>
       </ul>
       <i18n-t tag="small" keypath="poweredBy" class="poweredby text-body-secondary" scope="global">
         <template #link>
-          <a href="https://github.com/radiantearth/stac-browser" target="_blank">STAC Browser</a> {{ browserVersion }}
+          <a href="https://github.com/radiantearth/stac-browser" target="_blank" rel="noopener noreferrer">STAC Browser</a> {{ browserVersion }}
         </template>
       </i18n-t>
     </footer>
     <b-popover
       v-if="root" id="popover-root" class="popover-large" target="popover-root-btn"
       placement="bottom" :title="serviceType" teleport-to="#stac-browser"
-      click focus :boundary-padding="10"
+      click focus :boundary-padding="10" strategy="fixed"
     >
       <RootStats />
     </b-popover>
@@ -117,19 +113,18 @@ import BIconLock from '~icons/bi/lock';
 import BIconUnlock from '~icons/bi/unlock';
 
 import ErrorAlert from './components/ErrorAlert.vue';
+import HeaderTitle from './components/HeaderTitle.vue';
 import Loading from './components/Loading.vue';
 import StacLink from './components/StacLink.vue';
 
-import { CatalogLike, STAC } from 'stac-js';
-import { hasText, isObject, size } from 'stac-js/src/utils.js';
+import { STAC } from 'stac-js';
+import { hasText, isObject, size, URI } from 'stac-js/src/utils.js';
 import Utils from './utils';
-import { URI } from 'stac-js/src/utils.js';
 
 import { API_LANGUAGE_CONFORMANCE, updateExternals } from './i18n';
 import { getBest, prepareSupported } from 'stac-js/src/locales';
 import BrowserStorage from "./browser-store";
 import Authentication from "./components/Authentication.vue";
-import { getDisplayTitle } from "./models/stac";
 import Auth from './auth';
 
 // Pass Config through from props to vuex
@@ -158,6 +153,7 @@ export default defineComponent({
     BIconUnlock,
     BPopover: defineAsyncComponent(() => import('bootstrap-vue-next').then(m => m.BPopover)),
     ErrorAlert,
+    HeaderTitle,
     LanguageChooser: defineAsyncComponent(() => import('./components/LanguageChooser.vue')),
     Loading,
     RootStats: defineAsyncComponent(() => import('./components/RootStats.vue')),
@@ -174,13 +170,14 @@ export default defineComponent({
       sidebar: null,
       error: null,
       onDataLoaded: null,
-      isNavigatingLocale: false
+      isNavigatingLocale: false,
+      scrolled: false,
+      scrollListener: null
     };
   },
   computed: {
-    ...mapState(['allowSelectCatalog', 'browserReady', 'conformsTo', 'data', 'dataLanguage', 'downloads', 'globalError', 'loading', 'stateQueryParameters', 'uiLanguage', 'url']),
+    ...mapState(['allowSelectCatalog', 'browserReady', 'conformsTo', 'data', 'dataLanguage', 'downloads', 'globalError', 'loading', 'stateQueryParameters', 'url']),
     ...mapState({
-      catalogImageFromVueX: 'catalogImage',
       footerLinksFromVueX: 'footerLinks',
       localeFromVueX: 'locale',
       fallbackLocaleFromVueX: 'fallbackLocale',
@@ -190,7 +187,7 @@ export default defineComponent({
       enforcedColorModeFromVueX: 'enforcedColorMode',
       colorModeFromVueX: 'colorMode'
     }),
-    ...mapGetters(['canSearch', 'collectionLink', 'description', 'fromBrowserPath', 'isExternalUrl', 'isRoot', 'parentLink', 'root', 'rootLink', 'supportsConformance', 'title', 'toBrowserPath']),
+    ...mapGetters(['canSearch', 'collectionLink', 'fromBrowserPath', 'isExternalUrl', 'isRoot', 'parentLink', 'root', 'searchBrowserLink', 'supportsConformance', 'title', 'toBrowserPath']),
     ...mapGetters('auth', { authMethod: 'method' }),
     ...mapGetters('auth', ['canAuthenticate', 'isLoggedIn', 'showLogin']),
     browserVersion() {
@@ -215,22 +212,6 @@ export default defineComponent({
     },
     authLabel() {
       return this.isLoggedIn ? this.authMethod.getLogoutLabel() : this.authMethod.getLoginLabel();
-    },
-    searchBrowserLink() {
-      if (!this.canSearch) {
-        return null;
-      }
-      let searchLink;
-      if (this.data instanceof CatalogLike && !this.data.is(this.root)) {
-        searchLink = this.data.getSearchLink();
-      }
-      if (searchLink) {
-        return `/search${this.data.getBrowserPath()}`;
-      }
-      else if (this.root && this.allowSelectCatalog) {
-        return `/search${this.root.getBrowserPath()}`;
-      }
-      return '/search';
     },
     isApi() {
       // todo: This gives false results for a statically hosted OGC API - Records, which may include conformance classes
@@ -279,46 +260,11 @@ export default defineComponent({
       }
     },
     icon() {
-      return this.getIcon(this.data);
-    },
-    logo() {
-      if (this.catalogImageFromVueX) {
-        return Utils.createLink(this.catalogImageFromVueX, 'icon', this.rootLink?.title);
-      }
-      else {
-        return this.getIcon(this.root);
-      }
+      return Utils.getIcon(this.data);
     }
   },
   watch: {
     ...Watchers,
-    title(title) {
-      if (this.root) {
-        const rootTitle = getDisplayTitle(this.root);
-        if (rootTitle !== title) {
-          title += ` - ${rootTitle}`;
-        }
-      }
-      document.title = title;
-      document.getElementById('og-title').setAttribute("content", title);
-    },
-    description(description) {
-      const summary = Utils.summarizeMd(description, 200);
-      document.getElementById('meta-description').setAttribute("content", summary);
-      document.getElementById('og-description').setAttribute("content", summary);
-    },
-    uiLanguage: {
-      immediate: true,
-      async handler(locale) {
-        if (!locale) {
-          return;
-        }
-
-        // Update the HTML lang tag
-        document.documentElement.setAttribute("lang", locale);
-        document.getElementById('og-locale').setAttribute("content", locale);
-      }
-    },
     dataLanguage: {
       immediate: true,
       async handler(locale) {
@@ -331,7 +277,7 @@ export default defineComponent({
             const state = Object.assign({}, this.stateQueryParameters);
             this.isNavigatingLocale = true;
             try {
-              await this.$router.push(this.toBrowserPath(link.href));
+              await this.$router.push(this.toBrowserPath(link));
             }
             catch (error) {
               if (!isNavigationFailure(error, NavigationFailureType.duplicated)) {
@@ -367,51 +313,38 @@ export default defineComponent({
             query[key] = value;
           }
         }
-        for (const [key, value] of Object.entries(this.stateQueryParameters)) {
-          let name = `.${key}`;
-          if (Array.isArray(value)) {
-            if (value.length > 0) {
-              query[name] = value.join(',');
-            }
-          }
-          else if (value !== null) {
-            query[name] = value;
-          }
-        }
+        query = Utils.stateQueryParametersToObject(this.stateQueryParameters, query);
 
-        if (query.external) {
-          // OSC: Hack for accessing the external functionality in a hosted bundle
-          this.$router.replace(`/external/${query.external}`);
-        } else {
-          this.$router.replace({ query }).catch(error => {
-            if (!isNavigationFailure(error, NavigationFailureType.duplicated)) {
-              throw Error(error);
-            }
-          });
-        }
+        this.$router.replace({ query }).catch(error => {
+          if (!isNavigationFailure(error, NavigationFailureType.duplicated)) {
+            throw Error(error);
+          }
+        });
       }
     },
     root(root, oldRoot) {
       const canChange = [
         'apiCatalogPriority',
         'cardViewMode',
-        'cardViewSort',
         'crossOriginMedia',
+        'defaultCollectionSort',
+        'defaultItemSort',
         'defaultThumbnailSize',
         'displayGeoTiffByDefault',
+        'preferredAssets',
         'showThumbnailsAsAssets'
       ];
 
-      let doReset = !root || (oldRoot && isObject(oldRoot['stac_browser']));
-      let doSet = root && isObject(root['stac_browser']);
+      let doReset = !root || (oldRoot && isObject(oldRoot.stac_browser));
+      let doSet = root && isObject(root.stac_browser);
 
       for(let key of canChange) {
         let value;
         if (doReset) {
           value = CONFIG[key]; // Original value
         }
-        if (doSet && typeof root['stac_browser'][key] !== 'undefined') {
-          value = root['stac_browser'][key]; // Custom value from root
+        if (doSet && typeof root.stac_browser[key] !== 'undefined') {
+          value = root.stac_browser[key]; // Custom value from root
         }
 
         // Update config in store
@@ -444,26 +377,19 @@ export default defineComponent({
     },
     colorMode(value) {
       this.$store.commit('setColorMode', value);
+    },
+    scrollListener(newValue, oldValue) {
+      if (newValue) {
+        window.addEventListener('scroll', newValue, { passive: true });
+        // Initialize once, e.g. when the page is loaded already scrolled down.
+        newValue();
+      }
+      else {
+        window.removeEventListener('scroll', oldValue);
+      }
     }
   },
   async created() {
-    // OSC: Notify parent portal of navigation changes
-    this.$router.beforeEach((to, _, next) => {
-      window.parent.postMessage({
-        navigate: to.path
-      }, '*');
-      next();
-    });
-
-    // OSC: Listen for data injection from parent portal
-    window.addEventListener(
-      "message",
-      (event) => {
-        this.$store.commit("force", event.data.data);
-      },
-      false,
-    );
-    
     this.colorMode = useColorMode({
       selector: 'body',
       initialValue: this.enforcedColorModeFromVueX
@@ -495,7 +421,9 @@ export default defineComponent({
       this.$store.commit(resetOp);
       this.parseQuery(to);
 
-      document.getElementById('og-url').setAttribute("content", window.location.href);
+      if (this.$refs.headerTitle) {
+        this.$refs.headerTitle.updateUrl();
+      }
     });
 
     const authConfig = Auth.restoreLastMethod();
@@ -520,6 +448,19 @@ export default defineComponent({
         evt.preventDefault();
       }
     });
+
+    // Add scroll listener to show header shadow only when scrolled (and header is sticky)
+    this.scrollListener = () => {
+      const header = this.$refs.header;
+      const isSticky = header && window.getComputedStyle(header).position === 'sticky';
+      const scrolled = Boolean(isSticky) && window.scrollY > 0;
+      if (scrolled !== this.scrolled) {
+        this.scrolled = scrolled;
+      }
+    };
+  },
+  beforeUnmount() {
+    this.scrollListener = null;
   },
   methods: {
     ...mapActions(['switchLocale', 'switchDataLocale']),
@@ -528,22 +469,12 @@ export default defineComponent({
     toggleColorMode() {
       this.colorMode = this.colorMode === 'light' ? 'dark' : 'light';
     },
-    getIcon(data) {
-      if (data instanceof STAC) {
-        const icons = data.getIcons();
-        if (icons.length > 0) {
-          return icons[0];
-        }
-      }
-      return null;
-    },
     async logInOut() {
       if (this.url) {
         this.addAction(() => this.$store.dispatch('load', {
           url: this.url,
           show: true,
-          force: true,
-          noRetry: true
+          force: true
         }));
       }
       if (this.isLoggedIn) {
@@ -650,3 +581,4 @@ export default defineComponent({
 @import "./theme/page.scss";
 @import "./theme/custom.scss";
 </style>
+

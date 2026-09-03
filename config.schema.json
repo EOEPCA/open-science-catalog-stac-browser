@@ -8,8 +8,23 @@
       "type": ["string", "null"],
       "format": "uri"
     },
+    "apiUrl": {
+      "type": ["string", "null"],
+      "format": "uri"
+    },
+    "staticEndpoint": {
+      "type": ["string", "null"],
+      "format": "uri"
+    },
     "catalogTitle": {
-      "type": ["string"]
+      "type": ["string", "null"]
+    },
+    "catalogTitleAfterImage": {
+      "type": ["string", "null"]
+    },
+    "catalogImage": {
+      "type": ["string", "null"],
+      "format": "uri"
     },
     "allowExternalAccess": {
       "type": ["boolean"]
@@ -74,8 +89,7 @@
       "noEnv": true
     },
     "pathPrefix": {
-      "type": ["string"],
-      "buildOnly": true
+      "type": ["string"]
     },
     "historyMode": {
       "type": ["string"],
@@ -86,9 +100,11 @@
       "type": ["string"],
       "enum": ["list", "cards"]
     },
-    "cardViewSort": {
-      "type": ["string", "null"],
-      "enum": ["asc", "desc", null]
+    "defaultItemSort": {
+      "type": ["string", "null"]
+    },
+    "defaultCollectionSort": {
+      "type": ["string", "null"]
     },
     "showThumbnailsAsAssets": {
       "type": ["boolean"]
@@ -132,6 +148,10 @@
       "items": {
         "type": ["string"]
       }
+    },
+    "preferredAssets": {
+      "type": ["boolean", "string"],
+      "description": "Preferred asset selection strategy: false (show main asset), true (prefer HTTP/S), or asset key name (string)"
     },
     "preprocessSTAC": {
       "type": ["null"],

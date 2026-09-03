@@ -177,11 +177,10 @@ import DatePickerMixin from './DatePickerMixin';
 import Loading from './Loading.vue';
 
 import { CollectionCollection, STAC } from 'stac-js'; 
-import { createSTAC, Collection } from '../models/stac';
+import { createSTAC } from '../models/stac';
 import Cql from '../models/cql2/cql';
 import Queryable from '../models/cql2/queryable';
 import CqlLogicalOperator, { CqlNot } from '../models/cql2/operators/logical';
-import { stacRequest } from '../store/utils';
 import { formatKey } from '@radiantearth/stac-fields/helper';
 
 
@@ -273,8 +272,8 @@ export default defineComponent({
     }, getDefaults());
   },
   computed: {
-    ...mapState(['searchResultsPerPage', 'maxEntriesPerPage', 'uiLanguage']),
-    ...mapGetters(['canSearchCollections', 'supportsConformance']),
+    ...mapState(['defaultCollectionSort', 'defaultItemSort', 'searchResultsPerPage', 'maxEntriesPerPage', 'uiLanguage']),
+    ...mapGetters(['canSearchCollections', 'getApiChildren', 'supportsConformance']),
     collectionSelectOptions() {
       let taggable = !this.hasAllCollections;
       let isResult = this.collections.length > 0 && !this.hasAllCollections;
@@ -297,7 +296,7 @@ export default defineComponent({
       };
     },
     collectionSearchLink() {
-      return this.parent && this.parent.isCatalogLike && this.parent.getApiCollectionsLink();
+      return this.parent?.isCatalogLike && this.parent.getApiCollectionsLink();
     },
     codeExampleSearchLinks() {
       const toMethodMap = (link) => {
@@ -421,20 +420,33 @@ export default defineComponent({
     isSingleDateExtent() {
       const [min, max] = this.temporalExtent || [];
       return min instanceof Date && max instanceof Date && min.getTime() === max.getTime();
+    },
+    apiCollectionsState() {
+      return this.getApiChildren(this.parent);
+    },
+    apiCollectionsFromStore() {
+      const list = this.apiCollectionsState?.list;
+      if (!Array.isArray(list)) {
+        return [];
+      }
+      return list.filter(collection => collection instanceof STAC && collection.isCollection);
+    },
+    apiCollectionsPaginated() {
+      return Boolean(this.apiCollectionsState?.next || this.apiCollectionsState?.prev);
     }
   },
   watch: {
     parent: {
       immediate: true,
-      handler(newStac, oldStac) {
-        if (newStac instanceof Collection) {
-          newStac.setApiDataListener('searchfilter' + formId, () => this.updateApiCollections());
-        }
-        if (oldStac instanceof Collection) {
-          oldStac.setApiDataListener('searchfilter' + formId);
-        }
+      handler() {
         this.updateApiCollections();
       }
+    },
+    apiCollectionsFromStore() {
+      this.updateApiCollections();
+    },
+    apiCollectionsPaginated() {
+      this.updateApiCollections();
     },
     value: {
       immediate: true,
@@ -522,7 +534,10 @@ export default defineComponent({
           .catch(error => console.error(error))
       );
     }
-    Promise.all(promises).finally(() => this.loaded = true);
+    Promise.all(promises).finally(() => {
+      this.resetSort();
+      this.loaded = true;
+    });
   },
   methods: {
     resetSearchCollection() {
@@ -542,12 +557,12 @@ export default defineComponent({
       this.collectionsLoadingTimer = setTimeout(async () => {
         try {
           const link = Utils.addFiltersToLink(this.collectionSearchLink, {q: [text]});
-          const response = await stacRequest(this.$store, link);
+          const response = await this.$store.dispatch('request', { link });
           
           // Only set collections if response is valid AND collectionsLoadingTimer has not been reset.
           // If collectionsLoadingTimer has been reset, the result is not relevant anylonger.
           if (this.collectionsLoadingTimer && CollectionCollection.isResponse(response.data)) {
-            const stac = createSTAC(response.data);
+            const stac = createSTAC(response.data, null, this.$store);
             this.collections = this.prepareCollections(stac.getAll());
             if (typeof stac.numberMatched === 'number') {
               this.additionalCollectionCount = stac.numberMatched - this.collections.length;
@@ -572,13 +587,13 @@ export default defineComponent({
         data.collections = this.collections;
       }
       else if (this.type === 'Global' || this.type === 'Collections') {
-        let response = await stacRequest(this.$store, link);
+        let response = await this.$store.dispatch('request', { link });
         
         if (!isObject(response.data)) {
           return {};
         }
 
-        const stac = createSTAC(response.data);
+        const stac = createSTAC(response.data, null, this.$store);
         if (typeof stac.getQueryablesLink === 'function') {
           data.queryableLink = stac.getQueryablesLink();
         }
@@ -597,9 +612,8 @@ export default defineComponent({
       if (!this.parent) {
         return;
       }
-      let apiCollections = this.parent.getChildren('collections');
-      let nextCollectionsLink = this.parent._apiChildren.next;
-      if (!Array.isArray(apiCollections) || nextCollectionsLink || !this.conformances.CollectionIdFilter) {
+      let apiCollections = this.apiCollectionsFromStore;
+      if (!Array.isArray(apiCollections) || this.apiCollectionsPaginated || !this.conformances.CollectionIdFilter) {
         this.collections = [];
         return;
       }
@@ -621,7 +635,7 @@ export default defineComponent({
         .sort((a,b) => collator.compare(a.text, b.text));
     },
     async loadSchemas(link) {
-      let response = await stacRequest(this.$store, link);
+      let response = await this.$store.dispatch('request', { link });
       if (!isObject(response.data)) {
         return;
       }
@@ -706,8 +720,9 @@ export default defineComponent({
       this.query.filters = filters;
       this.$emit('input', this.query, false);
     },
-    async onReset() {
+    onReset() {
       Object.assign(this, getDefaults());
+      this.resetSort();
       this.$emit('input', this.query, true);
     },
     setLimit(limit) {
@@ -746,6 +761,20 @@ export default defineComponent({
       }
       else {
         return null;
+      }
+    },
+    resetSort() {
+      if (!this.canSort) {
+        return;
+      }
+      const defaults = this.type === 'Collections' ? this.defaultCollectionSort : this.defaultItemSort;
+      const sort = Utils.parseApiSortParameter(defaults);
+      if (sort.field) {
+        const sortOption = this.sortOptions.find(option => option.value === sort.field);
+        if (sortOption) {
+          this.sortTerm = sortOption;
+          this.sortOrder = sort.direction;
+        }
       }
     }
   }
