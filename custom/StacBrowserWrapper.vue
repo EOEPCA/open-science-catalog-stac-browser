@@ -188,7 +188,7 @@ export default {
       return this.$route.name === 'fair-preview' && this.$route.query.embed === 'true';
     },
     appVersion() {
-      return "3.0.0";
+      return "3.0.1";
     },
     apiAccessUrl() {
       const apiUrl = CONFIG.apiUrl || "https://eoapi.workspace.earthcode-staging.earthcode.eox.at/stac";
