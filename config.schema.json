@@ -16,6 +16,14 @@
       "type": ["string", "null"],
       "format": "uri"
     },
+    "workspaceRoot": {
+      "type": ["string", "null"],
+      "format": "uri"
+    },
+    "githubDataRoot": {
+      "type": ["string", "null"],
+      "format": "uri"
+    },
     "catalogTitle": {
       "type": ["string", "null"]
     },
