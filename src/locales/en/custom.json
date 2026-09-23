@@ -4,7 +4,7 @@
   },
   "fields": {
     "Created": "Release date",
-    "Scientific": "Documentation",
+    "Scientific": "Scientific Citation",
     "Time of Data begins": "Start date",
     "Time of Data ends": "End date"
   },
@@ -20,6 +20,10 @@
   "browse": "Overview",
   "topics": "Related EarthCODE Forum Topics",
   "fairAssessment": "FAIR Assessment",
+  "canonicalDoi": "Canonical DOI",
+  "doi": "DOI",
+  "copyDoi": "Copy DOI",
+  "copied": "Copied!",
   "dataAccess": {
     "title": "Data Access",
     "accessTheData": "Access the Data",

@@ -73,6 +73,23 @@ const router = createRouter({
   scrollBehavior: () => ({ left: 0, top: 0 })
 });
 
+router.beforeEach((to, from, next) => {
+  // Catch any legacy hash URLs (e.g. #/products/foo/collection_v1.json or #products/foo)
+  if (to.path === "/" && window.location.hash) {
+    const rawHash = window.location.hash.replace(/^#\/?/, "");
+    if (rawHash) {
+      const cleanPath = "/" + rawHash.replace(/\.json$/, "");
+      window.location.hash = "";
+      return next(cleanPath);
+    }
+  }
+  // Strip trailing .json if someone enters a URL ending with .json
+  if (to.path.endsWith(".json")) {
+    return next(to.path.slice(0, -5));
+  }
+  next();
+});
+
 const app = createApp(StacBrowserWrapper);
 app.config.globalProperties.$t = (key) => {
   const translations = {

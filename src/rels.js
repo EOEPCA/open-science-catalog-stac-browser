@@ -10,6 +10,8 @@ export const stacBrowserNavigatesTo = [
   'latest-version', // version extension v
   'predecessor-version',
   'successor-version',
+  'has-version',
+  'is-version-of',
   'source', // label extension,
   'alternate', // language extension
   'osc:subcatalog'

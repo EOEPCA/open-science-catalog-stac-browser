@@ -30,7 +30,7 @@ export default {
   methods: {
     navigationListener(evt) {
       if (evt.data && evt.data.navigate && this.firstLoadDone) {
-        let innerPath = evt.data.navigate.replace(".json", "");
+        let innerPath = evt.data.navigate.replace(/\.json$/, "");
         if (innerPath === "/" || innerPath === "/index" || innerPath === "") {
           innerPath = "/catalog";
         } else if (!innerPath.startsWith("/")) {
@@ -47,6 +47,10 @@ export default {
       let relativePath = path;
       if (Array.isArray(relativePath)) {
         relativePath = relativePath.join("/");
+      }
+
+      if (relativePath && relativePath.endsWith(".json")) {
+        relativePath = relativePath.slice(0, -5);
       }
       
       // Map root catalog browsing directly to catalog.json

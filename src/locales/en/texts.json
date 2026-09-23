@@ -80,6 +80,9 @@
   "defaultWithValue": "Default ({value})",
   "deprecated": "Deprecated",
   "deprecation": {
+    "canonicalNotice": "This {type} contains reference to all available versions.",
+    "canonicalTitle": "Canonical",
+    "canonicalVersion": "Canonical version:",
     "fallbackTitle": "Show",
     "latestVersion": "Latest version:",
     "otherVersionsNotice": "This {type} is *not* deprecated, but there are other versions available:",

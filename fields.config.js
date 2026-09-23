@@ -97,6 +97,86 @@ import config from './config.js';
 //     value.map(mission => formatLink("eo-missions", mission, links, "catalog")).join(", ")
 // });
 
+const isSameNamespace = (doi, contextDoi) => {
+  if (!doi) return false;
+  const clean = String(doi).replace(/^https?:\/\/doi\.org\//i, '').trim();
+  if (clean.startsWith('10.83395/') || clean.startsWith('10.85276/')) {
+    return true;
+  }
+  if (contextDoi) {
+    const cleanContext = String(contextDoi).replace(/^https?:\/\/doi\.org\//i, '').trim();
+    const prefix = cleanContext.split('/')[0] + '/';
+    if (prefix.startsWith('10.') && clean.startsWith(prefix)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const filterPublications = (pubs, contextDoi) => {
+  if (!Array.isArray(pubs)) return [];
+  return pubs.filter(item => {
+    if (!item) return false;
+    const doi = typeof item === 'string' ? item : item.doi;
+    const citation = typeof item === 'object' ? item.citation : null;
+    if (citation && String(citation).trim().length > 0) {
+      return true;
+    }
+    if (isSameNamespace(doi, contextDoi)) {
+      return false;
+    }
+    return true;
+  });
+};
+
+Registry.addExtension('sci', 'Scientific Citation');
+
+Registry.addMetadataField('sci:doi', {
+  label: "DOI",
+  formatter: (value, field, spec, context) => {
+    if (!value) return "";
+    const isCanonical = context?.links?.some(l => l.rel === 'has-version') && !context?.links?.some(l => l.rel === 'is-version-of');
+    if (isCanonical) {
+      spec.label = "Canonical DOI";
+    } else if (context?.version) {
+      const v = String(context.version).trim();
+      const vFormatted = v.toLowerCase().startsWith('v') ? v : `v${v}`;
+      spec.label = `DOI (${vFormatted})`;
+    } else {
+      spec.label = "DOI";
+    }
+    const cleanDoi = String(value).replace(/^https?:\/\/doi\.org\//i, "");
+    return `<a href="https://doi.org/${cleanDoi}" target="_blank" rel="noopener noreferrer">${cleanDoi}</a>`;
+  }
+});
+
+Registry.addMetadataField('sci:publications', {
+  label: "Publications & Additional DOIs",
+  formatter: (value, field, spec, context) => {
+    const remaining = filterPublications(value, context?.['sci:doi']);
+    if (remaining.length === 0) return "";
+    const items = remaining.map(item => {
+      if (typeof item === 'string') {
+        const clean = item.replace(/^https?:\/\/doi\.org\//i, "");
+        return `<a href="https://doi.org/${clean}" target="_blank" rel="noopener noreferrer" class="text-secondary small">${clean}</a>`;
+      }
+      if (typeof item === 'object' && item !== null) {
+        const cleanDoi = item.doi ? String(item.doi).replace(/^https?:\/\/doi\.org\//i, "") : null;
+        const doiLink = cleanDoi ? `<a href="https://doi.org/${cleanDoi}" target="_blank" rel="noopener noreferrer" class="text-secondary small">${cleanDoi}</a>` : "";
+        if (item.citation && cleanDoi) {
+          return `<span class="small">${item.citation} (${doiLink})</span>`;
+        } else if (item.citation) {
+          return `<span class="small">${item.citation}</span>`;
+        } else if (cleanDoi) {
+          return doiLink;
+        }
+      }
+      return String(item);
+    });
+    return Helper.toList(items, true, null, false);
+  }
+});
+
 Registry.fields.links.rel.mapping.vcs = "Version Control System";
 
 // DEFINE FIELDS TO IGNORE IN METADATA RENDERING
@@ -111,7 +191,7 @@ Registry.fields.links.rel.mapping.vcs = "Version Control System";
  * @returns {string[]} The fields to ignore in the metadata rendering.
  */
 const ignoreMetadata = (object, fields, type) => {
-  if (type === 'CatalogLike' && object) {
+  if ((type === 'CatalogLike' || type === 'Item') && object) {
     fields.push('access');
     Object.keys(object).forEach((key) => {
       if (key.startsWith("fair:") || key.startsWith("osc:")) {
@@ -119,6 +199,23 @@ const ignoreMetadata = (object, fields, type) => {
       }
     });
     fields.push('themes', 'variables', 'status', 'missions', 'region', 'project');
+
+    // If sci:doi has the same namespace and no citation text, ignore it from the table
+    // (since it is already displayed prominently in the header)
+    const rawDoi = object['sci:doi'] || object.properties?.['sci:doi'];
+    const rawCitation = object['sci:citation'] || object.properties?.['sci:citation'];
+    if (rawDoi && isSameNamespace(rawDoi, rawDoi) && !rawCitation) {
+      fields.push('sci:doi');
+    }
+
+    // If sci:publications has no remaining items after filtering same-namespace items without citation, ignore it
+    const rawPubs = object['sci:publications'] || object.properties?.['sci:publications'];
+    if (Array.isArray(rawPubs)) {
+      const remaining = filterPublications(rawPubs, rawDoi);
+      if (remaining.length === 0) {
+        fields.push('sci:publications');
+      }
+    }
   }
   return fields;
 };

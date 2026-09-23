@@ -1,10 +1,47 @@
 <template>
-  <component :is="component" class="stac-link" :id="id" :title="tooltip" v-bind="attributes">
+  <BButton v-if="button" class="stac-link" :id="id" :title="tooltip" v-bind="attributes">
     <slot>
       <img v-if="icon && !hideIcon" :src="icon.getAbsoluteUrl()" :alt="icon.title" :title="icon.title" class="icon me-2">
       <span class="title">{{ displayTitle }}</span>
     </slot>
-  </component>
+  </BButton>
+  <router-link
+    v-else-if="isStacBrowserLink"
+    :to="href"
+    custom
+    v-slot="{ navigate, isActive, isExactActive }"
+  >
+    <a
+      class="stac-link"
+      :class="{ 'router-link-active': isActive, 'router-link-exact-active': isExactActive }"
+      :id="id"
+      :title="tooltip"
+      :href="cleanHref"
+      :rel="link.rel"
+      :tabindex="id ? 0 : undefined"
+      @click="onNavigate($event, navigate)"
+    >
+      <slot>
+        <img v-if="icon && !hideIcon" :src="icon.getAbsoluteUrl()" :alt="icon.title" :title="icon.title" class="icon me-2">
+        <span class="title">{{ displayTitle }}</span>
+      </slot>
+    </a>
+  </router-link>
+  <a
+    v-else
+    class="stac-link"
+    :id="id"
+    :title="tooltip"
+    :href="href"
+    target="_blank"
+    rel="noopener noreferrer"
+    :tabindex="id ? 0 : undefined"
+  >
+    <slot>
+      <img v-if="icon && !hideIcon" :src="icon.getAbsoluteUrl()" :alt="icon.title" :title="icon.title" class="icon me-2">
+      <span class="title">{{ displayTitle }}</span>
+    </slot>
+  </a>
 </template>
 
 <script>
@@ -16,9 +53,13 @@ import { isObject, size, URI } from 'stac-js/src/utils.js';
 import { isStacMediaType } from 'stac-js/src/mediatypes.js';
 import { getDisplayTitle } from '../models/stac';
 import { STAC } from 'stac-js';
+import CONFIG from '../merged-config';
 
 export default defineComponent({
   name: "StacLink",
+  components: {
+    BButton
+  },
   props: {
     data: {
       type: [Object, Array],
@@ -165,6 +206,21 @@ export default defineComponent({
         return this.getRequestUrl(this.link.href);
       }
     },
+    externalRel() {
+      const rel = this.link.rel || '';
+      return rel ? `${rel} noopener noreferrer` : 'noopener noreferrer';
+    },
+    cleanHref() {
+      if (!this.href) {
+        return '';
+      }
+      let clean = this.href.replace(/\.json($|\?)/, '$1');
+      const prefix = (CONFIG.pathPrefix || '/').replace(/\/$/, '');
+      if (prefix && !clean.startsWith(prefix)) {
+        clean = `${prefix}${clean}`;
+      }
+      return clean;
+    },
     displayTitle() {
       if (this.title) {
         return this.title;
@@ -177,6 +233,13 @@ export default defineComponent({
   methods: {
     isLink(o) {
       return isObject(o) && !(o instanceof STAC);
+    },
+    onNavigate(event, navigate) {
+      if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey || (event.button !== undefined && event.button !== 0)) {
+        return;
+      }
+      event.preventDefault();
+      navigate(event);
     }
   }
 });
