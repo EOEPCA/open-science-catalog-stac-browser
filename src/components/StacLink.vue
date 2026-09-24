@@ -238,7 +238,6 @@ export default defineComponent({
       if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey || (event.button !== undefined && event.button !== 0)) {
         return;
       }
-      event.preventDefault();
       navigate(event);
     }
   }
