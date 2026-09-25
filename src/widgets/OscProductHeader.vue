@@ -230,7 +230,7 @@
               <template v-if="isCanonical">
                 <div class="fw-bold mb-1 text-primary">Canonical DOI</div>
                 <div class="text-secondary mb-2">
-                  This is the version-independent canonical DOI representing the overarching collection. Its target may update over time as new versions are released.
+                  This is the persistent canonical DOI which centrally identifies the content shown here as well as references to version history. This content can update through time.
                 </div>
                 <div class="small text-muted mb-2">
                   For persistent citations that will not change, refer to and cite a specific version:
