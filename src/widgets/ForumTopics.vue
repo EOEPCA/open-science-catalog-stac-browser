@@ -1,5 +1,5 @@
 <template>
-  <section v-if="isCollection && topicData" class="mb-4">
+  <section v-if="isCollection && topicData" class="forum-topics mb-4">
     <h2>{{ $t('topics') }}</h2>
     <div>
       <ul>

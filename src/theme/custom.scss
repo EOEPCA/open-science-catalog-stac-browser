@@ -12,6 +12,51 @@
   .catalogs-container {
     display: none !important;
   }
+
+  .cc {
+    > .row {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .col.meta {
+      width: 100% !important;
+      max-width: 100% !important;
+      flex: 0 0 100% !important;
+
+      @media (min-width: 992px) {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) !important;
+        grid-auto-flow: dense !important;
+        column-gap: 2.5rem !important;
+        align-items: start !important;
+
+        > section:not(.widget),
+        > .intro,
+        > .metadata,
+        > .links {
+          grid-column: 1 !important;
+        }
+
+        > .widget:has(.osc-data-access),
+        > .widget:has(.fair-assessment) {
+          grid-column: 2 !important;
+        }
+
+        > .widget:has(.forum-topics) {
+          grid-column: 1 / -1 !important;
+          margin-top: 1.5rem !important;
+        }
+      }
+    }
+
+    .col.items-container {
+      width: 100% !important;
+      max-width: 100% !important;
+      flex: 0 0 100% !important;
+      margin-top: 2rem !important;
+    }
+  }
 }
 
 #stac-browser {

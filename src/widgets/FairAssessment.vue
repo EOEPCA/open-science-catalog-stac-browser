@@ -1,5 +1,5 @@
 <template>
-  <section v-if="hasFairAssessment" class="mb-4">
+  <section v-if="hasFairAssessment" class="fair-assessment mb-4">
     <h2 class="mb-3">{{ $t('fairAssessment') }}</h2>
     <div class="row align-items-start">
       <!-- Left column: Donut Chart -->
